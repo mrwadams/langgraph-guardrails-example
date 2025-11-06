@@ -10,14 +10,10 @@ from pathlib import Path
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from guardrails.visualization import visualize_graph
-from guardrails.input_guardrails import TopicValidationGuardrail
+from guardrails.input_guardrails import InputLengthGuardrail, RateLimitGuardrail
 from guardrails.safety_guardrails import PIIDetectionGuardrail
 from guardrails.output_guardrails import OutputLengthGuardrail
 from guardrails.base import GuardrailChain
-from guardrails.input_guardrails import (
-    InputLengthGuardrail,
-    ProfanityFilterGuardrail,
-)
 
 # Create diagrams directory
 Path("docs/diagrams").mkdir(parents=True, exist_ok=True)
@@ -26,15 +22,15 @@ print("Generating Mermaid diagrams for example workflows...")
 print()
 
 # Example 1: Simple Input Guardrail
-print("1. Simple Input Guardrail (Topic Validation)")
+print("1. Simple Input Guardrail (Length Check)")
 
 class State1(TypedDict):
     input: str
     messages: list
 
-weather_guardrail = TopicValidationGuardrail(
-    allowed_topics=["weather", "climate"],
-    fuzzy_match=True,
+length_guardrail = InputLengthGuardrail(
+    min_length=5,
+    max_length=1000,
 )
 
 workflow1 = StateGraph(State1)

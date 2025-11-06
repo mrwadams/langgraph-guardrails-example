@@ -31,12 +31,13 @@ pip install -e ".[dev]"  # Development dependencies
 ### Step 1: Import and Create a Guardrail
 
 ```python
-from guardrails.input_guardrails import TopicValidationGuardrail
+from guardrails.input_guardrails import InputLengthGuardrail
 
-# Create a guardrail that only allows questions about cooking
-cooking_guardrail = TopicValidationGuardrail(
-    allowed_topics=["cooking", "recipe", "food", "baking"],
-    fuzzy_match=True,
+# Create a guardrail that limits input length
+length_guardrail = InputLengthGuardrail(
+    min_length=5,
+    max_length=500,
+    name="LengthCheck"
 )
 ```
 
@@ -49,24 +50,23 @@ from langgraph.graph import StateGraph, END
 class State(TypedDict):
     input: str
     messages: list
-    TopicValidation_result: str
 
 workflow = StateGraph(State)
 
 # Add nodes
-workflow.add_node("guardrail", cooking_guardrail.check)
-workflow.add_node("reject", cooking_guardrail.rejection_node)
+workflow.add_node("length_check", length_guardrail.check)
+workflow.add_node("rejection", length_guardrail.rejection_node)
 workflow.add_node("agent", your_agent_function)  # Your actual agent
 
 # Set routing
-workflow.set_entry_point("guardrail")
+workflow.set_entry_point("length_check")
 workflow.add_conditional_edges(
-    "guardrail",
-    cooking_guardrail.route,
-    {"continue": "agent", "reject": "reject"}
+    "length_check",
+    length_guardrail.route,
+    {"allow": "agent", "block": "rejection"}
 )
 workflow.add_edge("agent", END)
-workflow.add_edge("reject", END)
+workflow.add_edge("rejection", END)
 
 graph = workflow.compile()
 ```
@@ -75,11 +75,11 @@ graph = workflow.compile()
 
 ```python
 # Valid input - will pass
-result = graph.invoke({"input": "How do I bake a cake?"})
+result = graph.invoke({"input": "How do I bake a chocolate cake?"})
 print(result["messages"])
 
-# Invalid input - will be rejected
-result = graph.invoke({"input": "What's the weather?"})
+# Invalid input - will be rejected (too short)
+result = graph.invoke({"input": "Hi"})
 print(result["messages"])
 ```
 
@@ -88,47 +88,56 @@ print(result["messages"])
 Try the included examples to see different patterns:
 
 ```bash
-# Simple topic validation
-python examples/01_simple_input_guardrail.py
-
 # PII detection and redaction
-python examples/02_pii_redaction.py
+python examples/01_pii_redaction.py
 
 # Output validation
-python examples/03_output_validation.py
-
-# Multi-layer guardrails
-python examples/04_multi_layer.py
+python examples/02_output_validation.py
 
 # LLM-based safety (requires API key)
-python examples/05_llm_based_safety.py
+python examples/03_llm_based_safety.py
 
 # Production-ready example
-python examples/06_production_example.py
+python examples/04_production_example.py
+
+# Custom LLM guardrails
+python examples/05_custom_llm_guardrails.py
+
+# LLM vs keyword topic validation
+python examples/06_semantic_topic_validation.py
+
+# Embedding vs LLM comparison
+python examples/07_embedding_vs_llm_comparison.py
+
+# LM Studio for local embeddings
+python examples/08_lm_studio_embeddings.py
 ```
 
 ## Available Guardrails
 
 ### Input Guardrails (Pre-processing)
-- `TopicValidationGuardrail` - Validate input topics
-- `ProfanityFilterGuardrail` - Filter profanity
 - `InputLengthGuardrail` - Enforce length limits
 - `RateLimitGuardrail` - Rate limiting per user
-- `InputFormatGuardrail` - Regex pattern validation
-- `LanguageDetectionGuardrail` - Language validation
 
 ### Output Guardrails (Post-processing)
 - `OutputFormatGuardrail` - Validate response format
 - `OutputLengthGuardrail` - Enforce output length
-- `FactualityGuardrail` - Check factual accuracy
-- `SensitiveContentFilterGuardrail` - Filter sensitive data
 
-### Safety Guardrails (Both)
+### Safety Guardrails
 - `PIIDetectionGuardrail` - Detect/redact PII
 - `ContentSafetyGuardrail` - LLM-based safety check
-- `ToxicityGuardrail` - Toxicity detection
 - `PromptInjectionGuardrail` - Prevent prompt injection
 - `CodeExecutionGuardrail` - Validate code safety
+
+### Embedding-Based Guardrails (Fast Semantic Validation)
+- `SemanticSimilarityGuardrail` - Topic validation via embeddings
+- `MultiModalSemanticGuardrail` - Allow/block lists with embeddings
+
+### LLM-Based Guardrails (Flexible, Context-Aware)
+- `LLMGuardrail` - Custom prompt-based validation
+- `BrandSafetyGuardrail` - Brand values enforcement
+- `ToneGuardrail` - Tone/style validation
+- `FactualAccuracyGuardrail` - Fact-checking with knowledge base
 
 ## Common Patterns
 
@@ -136,11 +145,13 @@ python examples/06_production_example.py
 
 ```python
 from guardrails.base import GuardrailChain
+from guardrails.input_guardrails import InputLengthGuardrail, RateLimitGuardrail
+from guardrails.safety_guardrails import PIIDetectionGuardrail
 
 chain = GuardrailChain([
     InputLengthGuardrail(max_length=1000),
-    ProfanityFilterGuardrail(),
-    TopicValidationGuardrail(allowed_topics=["tech"]),
+    RateLimitGuardrail(max_requests_per_hour=100),
+    PIIDetectionGuardrail(redact=True),
 ])
 
 workflow.add_node("validation", chain.check)
@@ -221,7 +232,7 @@ print(f"Pass rate: {metrics['pass_rate']:.2%}")
 1. **Explore the Examples** - See `/examples` directory for complete working examples
 2. **Read the Full README** - Comprehensive guide with best practices
 3. **Customize Guardrails** - Extend `BaseGuardrail` for custom validation logic
-4. **Deploy to Production** - See `examples/06_production_example.py` for production setup
+4. **Deploy to Production** - See `examples/04_production_example.py` for production setup
 
 ## Troubleshooting
 

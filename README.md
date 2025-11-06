@@ -58,7 +58,7 @@ workflow.add_conditional_edges("guardrail", input_guardrail, {
 
 **Use when:** Simple binary decisions (safe/unsafe, valid/invalid)
 
-**Note:** For topic validation, prefer LLM-based semantic matching over keyword matching. See `examples/08_semantic_topic_validation.py` for comparison.
+**Note:** For topic validation, prefer LLM-based semantic matching over keyword matching. See `examples/06_semantic_topic_validation.py` for comparison.
 
 ### Pattern 2: State Transformation (Modify)
 
@@ -187,13 +187,14 @@ langgraph-guardrails-example/
 │   ├── visualization.py              # Graph visualization utilities
 │   └── utils.py                      # Helper functions
 ├── examples/
-│   ├── 01_simple_input_guardrail.py  # Basic input validation
-│   ├── 02_pii_redaction.py           # PII detection and redaction
-│   ├── 03_output_validation.py       # Response validation
-│   ├── 04_multi_layer.py             # Combined guardrails
-│   ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 4.5 Haiku)
-│   ├── 06_production_example.py      # Full production setup
-│   └── 07_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
+│   ├── 01_pii_redaction.py           # PII detection and redaction
+│   ├── 02_output_validation.py       # Response validation
+│   ├── 03_llm_based_safety.py        # LLM-powered safety checks (Claude 4.5 Haiku)
+│   ├── 04_production_example.py      # Full production setup
+│   ├── 05_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
+│   ├── 06_semantic_topic_validation.py  # LLM vs keyword topic validation comparison
+│   ├── 07_embedding_vs_llm_comparison.py  # Embedding vs LLM performance
+│   └── 08_lm_studio_embeddings.py    # LM Studio for local embeddings with GUI
 └── docs/
     └── diagrams/                     # Generated Mermaid diagrams
 ```
@@ -249,7 +250,7 @@ workflow.add_edge("reject", END)
 graph = workflow.compile()
 ```
 
-For semantic topic validation, use the LLM-based approach (see examples/08_semantic_topic_validation.py).
+For semantic topic validation, use the LLM-based approach (see examples/06_semantic_topic_validation.py).
 ```
 
 ### Custom LLM Guardrail Example
@@ -292,7 +293,7 @@ workflow.add_node("brand_check", brand_guardrail.check)
 - Fact-checking against knowledge base
 - Brand safety and compliance
 
-See `examples/07_custom_llm_guardrails.py` for complete examples including:
+See `examples/05_custom_llm_guardrails.py` for complete examples including:
 - Custom policy enforcement
 - Brand safety validation
 - Tone checking
@@ -404,12 +405,14 @@ workflow.add_conditional_edges("input", select_guardrail)
 ## Examples
 
 See the `examples/` directory for runnable code covering:
-1. **Simple Input Guardrail** - Basic topic validation
-2. **PII Redaction** - Detect and redact sensitive information
-3. **Output Validation** - Ensure responses meet criteria
-4. **Multi-Layer** - Combine multiple guardrails
-5. **LLM-Based Safety** - Use LLMs for semantic safety checks
-6. **Production Example** - Full featured production setup
+1. **PII Redaction** (`01_pii_redaction.py`) - Detect and redact sensitive information
+2. **Output Validation** (`02_output_validation.py`) - Ensure responses meet criteria
+3. **LLM-Based Safety** (`03_llm_based_safety.py`) - Use Claude 4.5 Haiku for semantic safety checks
+4. **Production Example** (`04_production_example.py`) - Full featured multi-layer production setup
+5. **Custom LLM Guardrails** (`05_custom_llm_guardrails.py`) - Flexible prompt-based validation
+6. **Semantic Topic Validation** (`06_semantic_topic_validation.py`) - LLM vs keyword comparison
+7. **Embedding vs LLM** (`07_embedding_vs_llm_comparison.py`) - Performance comparison
+8. **LM Studio Embeddings** (`08_lm_studio_embeddings.py`) - Local embeddings with GUI
 
 ## Contributing
 

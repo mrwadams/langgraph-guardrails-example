@@ -100,18 +100,20 @@ class AnthropicEmbeddingProvider(EmbeddingProvider):
 
 
 class OpenAIEmbeddingProvider(EmbeddingProvider):
-    """OpenAI embedding provider using text-embedding-3-small."""
+    """OpenAI embedding provider using text-embedding-3-small or compatible APIs."""
 
-    def __init__(self, api_key: str = None, model: str = "text-embedding-3-small"):
+    def __init__(self, api_key: str = None, model: str = "text-embedding-3-small", base_url: str = None):
         """
         Initialize OpenAI embedding provider.
 
         Args:
-            api_key: OpenAI API key (or set OPENAI_API_KEY env var)
+            api_key: OpenAI API key (or set OPENAI_API_KEY env var). For LM Studio, can be any string.
             model: Embedding model (text-embedding-3-small or text-embedding-3-large)
+            base_url: Custom base URL for OpenAI-compatible APIs (e.g., LM Studio: http://localhost:1234/v1)
         """
         self.api_key = api_key
         self.model = model
+        self.base_url = base_url
         self._client = None
 
     def _get_client(self):
@@ -122,10 +124,20 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
                 import os
 
                 api_key = self.api_key or os.getenv("OPENAI_API_KEY")
-                if not api_key:
+
+                # For custom endpoints (like LM Studio), API key may not be required
+                if not api_key and not self.base_url:
                     raise ValueError("OPENAI_API_KEY not found in environment")
 
-                self._client = OpenAI(api_key=api_key)
+                # Use default "not-needed" for local endpoints if no key provided
+                if not api_key and self.base_url:
+                    api_key = "not-needed"
+
+                # Initialize with custom base_url if provided (for LM Studio, etc.)
+                if self.base_url:
+                    self._client = OpenAI(api_key=api_key, base_url=self.base_url)
+                else:
+                    self._client = OpenAI(api_key=api_key)
             except ImportError:
                 raise ImportError("openai package required. Install: pip install openai")
 

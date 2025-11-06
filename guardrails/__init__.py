@@ -13,7 +13,9 @@ This package provides reusable guardrail components for:
 from guardrails.base import (
     BaseGuardrail,
     GuardrailResult,
+    GuardrailAction,
     GuardrailChain,
+    ConditionalGuardrail,
 )
 from guardrails.input_guardrails import (
     InputLengthGuardrail,
@@ -52,7 +54,9 @@ __all__ = [
     # Base classes
     "BaseGuardrail",
     "GuardrailResult",
+    "GuardrailAction",
     "GuardrailChain",
+    "ConditionalGuardrail",
     # Input guardrails
     "InputLengthGuardrail",
     "RateLimitGuardrail",

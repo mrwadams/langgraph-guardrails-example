@@ -138,7 +138,7 @@ def create_embedding_provider(provider: str = "local", **kwargs):
     Create an embedding provider for semantic similarity guardrails.
 
     Args:
-        provider: Provider type - "openai", "local", or "anthropic"
+        provider: Provider type - "openai", "local", "lm-studio", or "anthropic"
         **kwargs: Additional arguments for the provider
 
     Returns:
@@ -150,6 +150,20 @@ def create_embedding_provider(provider: str = "local", **kwargs):
 
         # OpenAI embeddings
         provider = create_embedding_provider("openai")
+
+        # LM Studio embeddings (OpenAI-compatible local API)
+        provider = create_embedding_provider(
+            "lm-studio",
+            base_url="http://localhost:1234/v1",
+            model="your-model-name"
+        )
+
+        # Custom OpenAI-compatible endpoint
+        provider = create_embedding_provider(
+            "openai",
+            base_url="http://custom-endpoint/v1",
+            model="custom-model"
+        )
 
         # Custom model
         provider = create_embedding_provider("local", model_name="all-mpnet-base-v2")
@@ -163,7 +177,15 @@ def create_embedding_provider(provider: str = "local", **kwargs):
     if provider == "openai":
         api_key = kwargs.get("api_key") or get_openai_api_key()
         model = kwargs.get("model", "text-embedding-3-small")
-        return OpenAIEmbeddingProvider(api_key=api_key, model=model)
+        base_url = kwargs.get("base_url")  # Optional custom endpoint
+        return OpenAIEmbeddingProvider(api_key=api_key, model=model, base_url=base_url)
+
+    elif provider == "lm-studio":
+        # LM Studio: OpenAI-compatible local API
+        base_url = kwargs.get("base_url", "http://localhost:1234/v1")
+        model = kwargs.get("model", "default")
+        api_key = kwargs.get("api_key", "not-needed")  # LM Studio doesn't require real API key
+        return OpenAIEmbeddingProvider(api_key=api_key, model=model, base_url=base_url)
 
     elif provider == "anthropic":
         api_key = kwargs.get("api_key") or get_anthropic_api_key()
@@ -177,7 +199,7 @@ def create_embedding_provider(provider: str = "local", **kwargs):
     else:
         raise ValueError(
             f"Unknown embedding provider: {provider}. "
-            "Choose 'openai', 'anthropic', or 'local'"
+            "Choose 'openai', 'lm-studio', 'anthropic', or 'local'"
         )
 
 

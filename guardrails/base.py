@@ -235,9 +235,9 @@ class GuardrailChain:
 
     Example:
         chain = GuardrailChain([
-            ProfanityFilterGuardrail(),
-            TopicValidationGuardrail(allowed_topics=["weather"]),
             InputLengthGuardrail(max_length=1000),
+            RateLimitGuardrail(max_requests_per_hour=100),
+            PIIDetectionGuardrail(redact=True),
         ])
     """
 

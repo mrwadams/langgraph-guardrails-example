@@ -68,8 +68,6 @@ Pre-process and validate user inputs before they reach your agent.
 
 **When to use:** Add as early nodes in your graph to filter/validate before processing.
 
-**Note:** For semantic validation like topic filtering, use LLM-based guardrails (see `llm_guardrails.py`). Keyword-based topic validation has been removed due to unreliability (false positives/negatives).
-
 ---
 
 ### `output_guardrails.py` - Output Validation
@@ -148,10 +146,23 @@ Use embedding models to validate topic relevance via semantic similarity. Fast, 
   - Model: all-MiniLM-L6-v2 (default, fast, 384 dims)
   - Model: all-mpnet-base-v2 (higher quality, 768 dims)
   - Model: paraphrase-multilingual (50+ languages)
+  - **Best for**: Python-only projects, quick prototyping
 
-- **`OpenAIEmbeddingProvider`** - OpenAI embeddings
+- **LM Studio Provider** - Local embeddings with GUI (FREE, RECOMMENDED)
+  - **Download**: [LM Studio](https://lmstudio.ai/) - user-friendly interface for running embedding models locally
+  - **Benefits**:
+    - Easy model selection and management via GUI
+    - Run various embedding models (BERT, MiniLM, E5, etc.)
+    - OpenAI-compatible API endpoint
+    - Switch models without code changes
+    - Monitor performance in real-time
+  - **Setup**: Load an embedding model in LM Studio, start the server, use provider type `"lm-studio"`
+  - **Default endpoint**: `http://localhost:1234/v1`
+
+- **`OpenAIEmbeddingProvider`** - OpenAI embeddings or compatible APIs
   - Model: text-embedding-3-small (~$0.00002/request)
   - Model: text-embedding-3-large (higher accuracy)
+  - **Also supports**: Custom OpenAI-compatible endpoints (including LM Studio)
 
 - **`AnthropicEmbeddingProvider`** - Anthropic/Voyage embeddings
   - Note: Placeholder for future Anthropic embedding API
@@ -315,18 +326,32 @@ workflow.add_node("validate", chain.check)
 from guardrails.embedding_guardrails import SemanticSimilarityGuardrail
 from guardrails.config import create_embedding_provider
 
-# Fast topic validation using local embeddings (no API required)
+# Option A: LM Studio (RECOMMENDED - local, GUI, flexible)
+# 1. Download LM Studio from https://lmstudio.ai/
+# 2. Load an embedding model (e.g., nomic-embed-text, all-MiniLM-L6-v2)
+# 3. Start the local server (default: localhost:1234)
 topic_guardrail = SemanticSimilarityGuardrail(
     topic_descriptions=[
         "programming and software development",
         "technology and computer science"
     ],
-    embedding_provider=create_embedding_provider("local"),
+    embedding_provider=create_embedding_provider(
+        "lm-studio",
+        base_url="http://localhost:1234/v1",  # LM Studio default
+        model="your-model-name"                # Model loaded in LM Studio
+    ),
     similarity_threshold=0.70
 )
 workflow.add_node("topic_check", topic_guardrail.check)
 
-# Or use OpenAI embeddings for potentially better accuracy
+# Option B: SentenceTransformer (local, Python-only, no GUI)
+topic_guardrail = SemanticSimilarityGuardrail(
+    topic_descriptions=["weather forecasts and climate"],
+    embedding_provider=create_embedding_provider("local"),
+    similarity_threshold=0.70
+)
+
+# Option C: OpenAI embeddings (cloud, paid, high quality)
 topic_guardrail = SemanticSimilarityGuardrail(
     topic_descriptions=["weather forecasts and climate"],
     embedding_provider=create_embedding_provider("openai"),
@@ -441,29 +466,14 @@ GuardrailChain([
 ## Examples
 
 See the `examples/` directory for complete working examples:
-- `02_pii_redaction.py` - PII detection and redaction
-- `03_output_validation.py` - Output format validation
-- `05_llm_based_safety.py` - LLM-powered safety
-- `06_production_example.py` - Production setup with LLM topic validation
-- `07_custom_llm_guardrails.py` - Custom LLM validation
-- `08_semantic_topic_validation.py` - Why LLM-based topic validation is better
-- `09_embedding_vs_llm_comparison.py` - **Embedding vs LLM performance comparison**
-
-## Removed Guardrails
-
-The following guardrails were removed due to unreliability (false positives/negatives from crude pattern matching):
-
-**Removed:**
-- `TopicValidationGuardrail` - Use `LLMGuardrail` for semantic topic validation instead
-- `ProfanityFilterGuardrail` - Use `ContentSafetyGuardrail` with LLM instead
-- `InputFormatGuardrail` - Brittle regex validation
-- `LanguageDetectionGuardrail` - Unreliable optional dependency
-- `FactualityGuardrail` - Text similarity ≠ factual accuracy
-- `NoHallucinationGuardrail` - Crude keyword checking
-- `SensitiveContentFilterGuardrail` - Use PII detection or custom LLM guardrail
-- `ToxicityGuardrail` - Use `ContentSafetyGuardrail` with LLM instead
-
-For all semantic validation needs (topic, tone, profanity, toxicity, etc.), use LLM-based guardrails which understand context and nuance.
+- `01_pii_redaction.py` - PII detection and redaction
+- `02_output_validation.py` - Output format validation
+- `03_llm_based_safety.py` - LLM-powered safety
+- `04_production_example.py` - Production setup with multi-layer validation
+- `05_custom_llm_guardrails.py` - Custom LLM validation
+- `06_semantic_topic_validation.py` - Why LLM-based topic validation is better
+- `07_embedding_vs_llm_comparison.py` - Embedding vs LLM performance comparison
+- `08_lm_studio_embeddings.py` - **Using LM Studio for local embeddings with GUI**
 
 ## Contributing
 

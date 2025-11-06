@@ -334,7 +334,7 @@ Use keyword/pattern matching when:
 - Cost is a major constraint
 
 Best practice: Layer both! Use fast keyword checks first, then LLM checks for
-cases that pass the initial filter. See example 06 for production patterns.
+cases that pass the initial filter. See example 04 (production_example.py) for production patterns.
 """)
 
 print("\nGuardrail Metrics:")
