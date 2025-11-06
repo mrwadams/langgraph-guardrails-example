@@ -1,5 +1,5 @@
 """
-Example 3: Output Validation Guardrail
+Example 2: Output Validation Guardrail
 =======================================
 
 This example shows how to validate agent outputs before returning them to users.

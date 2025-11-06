@@ -1,5 +1,5 @@
 """
-Example 2: PII Redaction Guardrail
+Example 1: PII Redaction Guardrail
 ===================================
 
 This example demonstrates automatic PII detection and redaction.

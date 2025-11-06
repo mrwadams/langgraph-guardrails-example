@@ -1,5 +1,5 @@
 """
-Example 6: Production-Ready Multi-Guardrail System
+Example 4: Production-Ready Multi-Guardrail System
 ===================================================
 
 This example demonstrates a production-ready setup with:

@@ -1,5 +1,5 @@
 """
-Example 8: Semantic Topic Validation with LLM
+Example 6: Semantic Topic Validation with LLM
 ==============================================
 
 This example demonstrates why LLM-based topic validation is superior to keyword matching,

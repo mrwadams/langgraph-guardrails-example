@@ -1,5 +1,5 @@
 """
-Example 5: LLM-Based Safety Guardrail
+Example 3: LLM-Based Safety Guardrail
 ======================================
 
 This example demonstrates using an LLM to perform semantic content safety checks.
@@ -163,7 +163,7 @@ To enable LLM-based safety checking with Claude 4.5 Haiku:
    ANTHROPIC_API_KEY=your_api_key_here
 
 4. Run this example again:
-   python examples/05_llm_based_safety.py
+   python examples/03_llm_based_safety.py
 
 Why Claude 4.5 Haiku for guardrails?
 - Fastest: Sub-2 second latency for real-time validation

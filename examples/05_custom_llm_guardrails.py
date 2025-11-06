@@ -1,5 +1,5 @@
 """
-Example 7: Custom LLM-Based Guardrails
+Example 5: Custom LLM-Based Guardrails
 =======================================
 
 This example demonstrates using flexible LLM-based guardrails with custom prompts.

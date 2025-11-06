@@ -1,6 +1,6 @@
 """
-Example 9: Embedding vs LLM Topic Validation Comparison
-=========================================================
+Example 7: Embedding vs LLM Topic Validation Comparison
+========================================================
 
 This example compares two approaches for semantic topic validation:
 
