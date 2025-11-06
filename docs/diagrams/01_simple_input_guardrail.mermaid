@@ -1,0 +1,19 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	guardrail_check(guardrail_check)
+	agent(agent)
+	reject(reject)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> guardrail_check;
+	guardrail_check -. &nbsp;continue&nbsp; .-> agent;
+	guardrail_check -.-> reject;
+	agent --> __end__;
+	reject --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

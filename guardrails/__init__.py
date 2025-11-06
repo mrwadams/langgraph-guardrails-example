@@ -27,6 +27,12 @@ from guardrails.safety_guardrails import (
     PIIDetectionGuardrail,
     ContentSafetyGuardrail,
 )
+from guardrails.llm_guardrails import (
+    LLMGuardrail,
+    BrandSafetyGuardrail,
+    ToneGuardrail,
+    FactualAccuracyGuardrail,
+)
 from guardrails.config import (
     create_anthropic_llm,
     create_openai_llm,
@@ -48,6 +54,11 @@ __all__ = [
     # Safety guardrails
     "PIIDetectionGuardrail",
     "ContentSafetyGuardrail",
+    # LLM-based guardrails
+    "LLMGuardrail",
+    "BrandSafetyGuardrail",
+    "ToneGuardrail",
+    "FactualAccuracyGuardrail",
     # Configuration
     "create_anthropic_llm",
     "create_openai_llm",

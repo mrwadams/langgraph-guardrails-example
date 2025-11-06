@@ -111,6 +111,59 @@ workflow.add_node("safety_check", safety_guardrail.check)
 - Accurate: Excellent at classification and safety tasks
 - Context-aware: Understands nuance better than keywords
 
+## Visual Graph Representations
+
+All examples include visual workflow diagrams showing how guardrails integrate into your LangGraph flows:
+
+### Simple Input Guardrail
+```mermaid
+graph TD;
+    __start__([start]) --> guardrail_check
+    guardrail_check -->|continue| agent
+    guardrail_check -->|reject| reject
+    agent --> __end__([end])
+    reject --> __end__
+```
+
+### PII Redaction Flow
+```mermaid
+graph TD;
+    __start__([start]) --> pii_check
+    pii_check --> agent
+    agent --> __end__([end])
+```
+
+### Output Validation with Retry
+```mermaid
+graph TD;
+    __start__([start]) --> agent
+    agent --> output_validation
+    output_validation -->|success| __end__([end])
+    output_validation -->|error| retry
+    retry --> __end__
+```
+
+### Production Multi-Layer System
+```mermaid
+graph TD;
+    __start__([start]) --> input_validation
+    input_validation -->|continue| agent
+    input_validation -->|reject| input_rejection
+    input_rejection --> __end__([end])
+    agent --> output_validation
+    output_validation -->|success| __end__
+    output_validation -->|error| error_handler
+    error_handler --> __end__
+```
+
+**Generate your own diagrams:**
+```bash
+python generate_diagrams.py
+# Creates Mermaid diagrams in docs/diagrams/
+```
+
+View diagrams at [mermaid.live](https://mermaid.live) or with VS Code Mermaid extension.
+
 ## Repository Structure
 
 ```
@@ -119,21 +172,27 @@ langgraph-guardrails-example/
 ├── QUICKSTART.md                      # Quick start guide
 ├── requirements.txt                   # Dependencies
 ├── .env.example                       # Environment variables template
+├── generate_diagrams.py               # Generate workflow visualizations
 ├── guardrails/
 │   ├── __init__.py
 │   ├── base.py                       # Base guardrail classes
-│   ├── config.py                     # Configuration & LLM setup
+│   ├── config.py                     # Configuration & LLM setup (Claude 3.5 Haiku)
 │   ├── input_guardrails.py           # Input validation guardrails
 │   ├── output_guardrails.py          # Output filtering guardrails
 │   ├── safety_guardrails.py          # Content safety guardrails
+│   ├── llm_guardrails.py             # Flexible LLM-based guardrails with custom prompts
+│   ├── visualization.py              # Graph visualization utilities
 │   └── utils.py                      # Helper functions
-└── examples/
-    ├── 01_simple_input_guardrail.py  # Basic input validation
-    ├── 02_pii_redaction.py           # PII detection and redaction
-    ├── 03_output_validation.py       # Response validation
-    ├── 04_multi_layer.py             # Combined guardrails
-    ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 3.5 Haiku)
-    └── 06_production_example.py      # Full production setup
+├── examples/
+│   ├── 01_simple_input_guardrail.py  # Basic input validation
+│   ├── 02_pii_redaction.py           # PII detection and redaction
+│   ├── 03_output_validation.py       # Response validation
+│   ├── 04_multi_layer.py             # Combined guardrails
+│   ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 3.5 Haiku)
+│   ├── 06_production_example.py      # Full production setup
+│   └── 07_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
+└── docs/
+    └── diagrams/                     # Generated Mermaid diagrams
 ```
 
 ## Quick Start
@@ -185,6 +244,52 @@ workflow.add_edge("reject", END)
 
 graph = workflow.compile()
 ```
+
+### Custom LLM Guardrail Example
+
+For more flexible, context-aware validation using Claude 3.5 Haiku:
+
+```python
+from guardrails.llm_guardrails import LLMGuardrail
+from guardrails.config import create_anthropic_llm
+
+# Create a custom guardrail with your own prompt
+brand_guardrail = LLMGuardrail(
+    llm=create_anthropic_llm(),
+    system_prompt="You are a brand safety expert.",
+    instruction_template="""Check if this content aligns with our brand values:
+    - Professional and respectful
+    - Family-friendly
+    - No controversial topics
+
+    Content: {content}
+
+    Respond with JSON: {{"is_safe": bool, "reason": str, "confidence": float}}
+    """,
+    threshold=0.8
+)
+
+# Use it like any guardrail
+workflow.add_node("brand_check", brand_guardrail.check)
+```
+
+**Benefits over keyword matching:**
+- Understands context and nuance
+- Adapts to complex rules via natural language
+- Can validate tone, intent, factuality
+- More maintainable (change prompt, not code)
+
+**When to use:**
+- Complex, domain-specific validation
+- Tone/style checking
+- Fact-checking against knowledge base
+- Brand safety and compliance
+
+See `examples/07_custom_llm_guardrails.py` for complete examples including:
+- Custom policy enforcement
+- Brand safety validation
+- Tone checking
+- Code review guardrails
 
 ## Key Differences from LangChain Guardrails
 
