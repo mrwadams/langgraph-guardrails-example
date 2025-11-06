@@ -7,6 +7,7 @@ This package provides reusable guardrail components for:
 - Content safety checks
 - PII detection and redaction
 - LLM-based semantic validation (Claude 4.5 Haiku)
+- Embedding-based semantic similarity validation
 """
 
 from guardrails.base import (
@@ -34,9 +35,16 @@ from guardrails.llm_guardrails import (
     ToneGuardrail,
     FactualAccuracyGuardrail,
 )
+from guardrails.embedding_guardrails import (
+    SemanticSimilarityGuardrail,
+    MultiModalSemanticGuardrail,
+    OpenAIEmbeddingProvider,
+    SentenceTransformerProvider,
+)
 from guardrails.config import (
     create_anthropic_llm,
     create_openai_llm,
+    create_embedding_provider,
     get_anthropic_api_key,
 )
 
@@ -61,9 +69,15 @@ __all__ = [
     "BrandSafetyGuardrail",
     "ToneGuardrail",
     "FactualAccuracyGuardrail",
+    # Embedding-based guardrails
+    "SemanticSimilarityGuardrail",
+    "MultiModalSemanticGuardrail",
+    "OpenAIEmbeddingProvider",
+    "SentenceTransformerProvider",
     # Configuration
     "create_anthropic_llm",
     "create_openai_llm",
+    "create_embedding_provider",
     "get_anthropic_api_key",
 ]
 

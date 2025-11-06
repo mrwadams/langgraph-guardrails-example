@@ -7,8 +7,13 @@ python-dotenv>=1.0.0
 # LLM providers (Anthropic for model-based guardrails)
 langchain-anthropic>=0.1.0
 
-# Optional: OpenAI (alternative provider)
+# Optional: OpenAI (alternative provider for LLM and embeddings)
 # langchain-openai>=0.0.5
+# openai>=1.0.0
+
+# Embedding-based guardrails
+numpy>=1.24.0
+sentence-transformers>=2.2.0  # Local embeddings (no API required)
 
 # Optional: Advanced PII detection
 # presidio-analyzer>=2.2.0
