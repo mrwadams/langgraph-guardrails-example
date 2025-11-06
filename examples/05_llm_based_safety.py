@@ -5,7 +5,7 @@ Example 5: LLM-Based Safety Guardrail
 This example demonstrates using an LLM to perform semantic content safety checks.
 Unlike rule-based guardrails, this can understand context and nuance.
 
-This example uses Claude 3.5 Haiku - fast, cost-effective, and accurate for guardrails.
+This example uses Claude 4.5 Haiku - fast, cost-effective, and accurate for guardrails.
 
 Setup:
 1. Copy .env.example to .env
@@ -32,7 +32,7 @@ class AgentState(TypedDict):
 
 def create_safety_guardrail():
     """
-    Create an LLM-based content safety guardrail using Claude 3.5 Haiku.
+    Create an LLM-based content safety guardrail using Claude 4.5 Haiku.
 
     Falls back to keyword-based checking if no API key is set.
     """
@@ -42,7 +42,7 @@ def create_safety_guardrail():
     if get_anthropic_api_key():
         try:
             llm = create_anthropic_llm()
-            print("✓ Using Claude 3.5 Haiku for LLM-based safety checking\n")
+            print("✓ Using Claude 4.5 Haiku for LLM-based safety checking\n")
         except Exception as e:
             print(f"⚠ Could not initialize Claude: {e}")
             print("Falling back to keyword-based checking\n")
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     print("SETUP INSTRUCTIONS:")
     print("=" * 60)
     print("""
-To enable LLM-based safety checking with Claude 3.5 Haiku:
+To enable LLM-based safety checking with Claude 4.5 Haiku:
 
 1. Copy the example environment file:
    cp .env.example .env
@@ -165,10 +165,11 @@ To enable LLM-based safety checking with Claude 3.5 Haiku:
 4. Run this example again:
    python examples/05_llm_based_safety.py
 
-Why Claude 3.5 Haiku for guardrails?
-- Fast: Low latency for real-time validation
-- Cost-effective: ~1/10th the cost of Claude 3.5 Sonnet
-- Accurate: Excellent at classification tasks
+Why Claude 4.5 Haiku for guardrails?
+- Fastest: Sub-2 second latency for real-time validation
+- Cost-effective: $1 per million input tokens
+- Powerful: Matches Sonnet 4 performance on coding/agent tasks
+- Accurate: Excellent at classification and safety tasks
 - Reliable: High uptime and consistent performance
 
 Benefits of LLM-based safety over keyword matching:

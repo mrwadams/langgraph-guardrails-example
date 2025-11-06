@@ -1,5 +1,5 @@
 """
-LLM-based guardrails using Claude 3.5 Haiku or other models.
+LLM-based guardrails using Claude 4.5 Haiku or other models.
 
 These guardrails use language models for semantic validation, providing
 more nuanced and context-aware checking than pattern matching.

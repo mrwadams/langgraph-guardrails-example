@@ -91,7 +91,7 @@ def multi_layer_guardrail(state: State) -> Literal["reject_unsafe", "reject_offt
 from guardrails.safety_guardrails import ContentSafetyGuardrail
 from guardrails.config import create_anthropic_llm
 
-# Use Claude 3.5 Haiku for fast, accurate content safety checking
+# Use Claude 4.5 Haiku for fast, accurate content safety checking
 llm = create_anthropic_llm()  # Loads from .env file
 
 safety_guardrail = ContentSafetyGuardrail(
@@ -105,11 +105,12 @@ workflow.add_node("safety_check", safety_guardrail.check)
 
 **Use when:** Rule-based checks aren't sufficient; need semantic understanding
 
-**Why Claude 3.5 Haiku?**
-- Fast: ~1-2 second latency for guardrail checks
-- Cost-effective: ~$0.25 per million input tokens
-- Accurate: Excellent at classification and safety tasks
-- Context-aware: Understands nuance better than keywords
+**Why Claude 4.5 Haiku?**
+- Fastest: Anthropic's fastest model for real-time guardrail validation
+- Cost-effective: $1 per million input tokens, $5 per million output tokens
+- Powerful: Matches Sonnet 4 performance on coding and agent tasks
+- Accurate: Excellent at classification, safety checks, and content moderation
+- Context-aware: Understands nuance better than keyword matching
 
 ## Visual Graph Representations
 
@@ -176,7 +177,7 @@ langgraph-guardrails-example/
 ├── guardrails/
 │   ├── __init__.py
 │   ├── base.py                       # Base guardrail classes
-│   ├── config.py                     # Configuration & LLM setup (Claude 3.5 Haiku)
+│   ├── config.py                     # Configuration & LLM setup (Claude 4.5 Haiku)
 │   ├── input_guardrails.py           # Input validation guardrails
 │   ├── output_guardrails.py          # Output filtering guardrails
 │   ├── safety_guardrails.py          # Content safety guardrails
@@ -188,7 +189,7 @@ langgraph-guardrails-example/
 │   ├── 02_pii_redaction.py           # PII detection and redaction
 │   ├── 03_output_validation.py       # Response validation
 │   ├── 04_multi_layer.py             # Combined guardrails
-│   ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 3.5 Haiku)
+│   ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 4.5 Haiku)
 │   ├── 06_production_example.py      # Full production setup
 │   └── 07_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
 └── docs/
@@ -247,7 +248,7 @@ graph = workflow.compile()
 
 ### Custom LLM Guardrail Example
 
-For more flexible, context-aware validation using Claude 3.5 Haiku:
+For more flexible, context-aware validation using Claude 4.5 Haiku:
 
 ```python
 from guardrails.llm_guardrails import LLMGuardrail

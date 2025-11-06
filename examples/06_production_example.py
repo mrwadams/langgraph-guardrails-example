@@ -4,7 +4,7 @@ Example 6: Production-Ready Multi-Guardrail System
 
 This example demonstrates a production-ready setup with:
 - Multi-layer input validation
-- Optional LLM-based content safety (Claude 3.5 Haiku)
+- Optional LLM-based content safety (Claude 4.5 Haiku)
 - Agent processing with tool calls
 - Output validation
 - Error handling
@@ -72,7 +72,7 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE, use_llm_sa
 
     Args:
         safety_level: Security strictness level
-        use_llm_safety: If True and API key available, use Claude 3.5 Haiku for content safety
+        use_llm_safety: If True and API key available, use Claude 4.5 Haiku for content safety
     """
 
     if safety_level == SafetyLevel.STRICT:
@@ -127,7 +127,7 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE, use_llm_sa
                     threshold=0.7,
                 )
             )
-            print("✓ Using Claude 3.5 Haiku for LLM-based content safety\n")
+            print("✓ Using Claude 4.5 Haiku for LLM-based content safety\n")
         except Exception as e:
             print(f"⚠ Could not initialize LLM safety guardrail: {e}\n")
 

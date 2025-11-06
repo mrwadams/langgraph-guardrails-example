@@ -6,7 +6,7 @@ This package provides reusable guardrail components for:
 - Output validation and filtering
 - Content safety checks
 - PII detection and redaction
-- LLM-based semantic validation (Claude 3.5 Haiku)
+- LLM-based semantic validation (Claude 4.5 Haiku)
 """
 
 from guardrails.base import (

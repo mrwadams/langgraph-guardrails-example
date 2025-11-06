@@ -37,12 +37,12 @@ def get_guardrail_model() -> str:
     """
     Get the model to use for LLM-based guardrails.
 
-    Defaults to Claude 3.5 Haiku (fast, cost-effective for guardrails).
+    Defaults to Claude 4.5 Haiku (fastest, most cost-efficient for guardrails).
 
     Returns:
         Model name string
     """
-    return os.getenv("GUARDRAIL_MODEL", "claude-3-5-haiku-20241022")
+    return os.getenv("GUARDRAIL_MODEL", "claude-haiku-4-5")
 
 
 def get_safety_level() -> str:
@@ -60,7 +60,7 @@ def create_anthropic_llm(model: str = None, temperature: float = 0, **kwargs):
     Create an Anthropic LLM instance for use in guardrails.
 
     Args:
-        model: Model name (defaults to Claude 3.5 Haiku)
+        model: Model name (defaults to Claude 4.5 Haiku)
         temperature: Temperature setting (default 0 for deterministic guardrails)
         **kwargs: Additional arguments to pass to ChatAnthropic
 

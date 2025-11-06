@@ -49,7 +49,7 @@ llm = None
 if get_anthropic_api_key():
     try:
         llm = create_anthropic_llm()
-        print("✓ Using Claude 3.5 Haiku for custom guardrails")
+        print("✓ Using Claude 4.5 Haiku for custom guardrails")
         print()
     except Exception as e:
         print(f"⚠ Could not initialize Claude: {e}")
@@ -317,7 +317,7 @@ print("""
 ✓ Context-aware: Understands nuance better than keywords
 ✓ Maintainable: Update rules by changing prompts, not code
 ✓ Powerful: Can handle complex, domain-specific validation
-✓ Fast: Claude 3.5 Haiku provides sub-2-second validation
+✓ Fast: Claude 4.5 Haiku provides sub-2-second validation
 
 When to use LLM guardrails vs. keyword matching:
 
