@@ -219,33 +219,37 @@ cp .env.example .env
 
 ```python
 from langgraph.graph import StateGraph, END
-from guardrails.input_guardrails import TopicValidationGuardrail
+from guardrails.input_guardrails import InputLengthGuardrail
 
 # Define your state
 class State(TypedDict):
     input: str
     messages: list
 
-# Create guardrail
-topic_guardrail = TopicValidationGuardrail(
-    allowed_topics=["weather", "climate"]
+# Create guardrail (example: length validation)
+length_guardrail = InputLengthGuardrail(
+    min_length=3,
+    max_length=1000
 )
 
 # Build graph
 workflow = StateGraph(State)
-workflow.add_node("validate", topic_guardrail.check)
+workflow.add_node("validate", length_guardrail.check)
 workflow.add_node("agent", your_agent_node)
-workflow.add_node("reject", lambda s: {"messages": ["Sorry, off-topic"]})
+workflow.add_node("reject", lambda s: {"messages": ["Input validation failed"]})
 
 workflow.set_entry_point("validate")
-workflow.add_conditional_edges("validate", topic_guardrail.route, {
-    "valid": "agent",
-    "invalid": "reject"
+workflow.add_conditional_edges("validate", length_guardrail.route, {
+    "allow": "agent",
+    "block": "reject"
 })
 workflow.add_edge("agent", END)
 workflow.add_edge("reject", END)
 
 graph = workflow.compile()
+```
+
+For semantic topic validation, use the LLM-based approach (see examples/08_semantic_topic_validation.py).
 ```
 
 ### Custom LLM Guardrail Example

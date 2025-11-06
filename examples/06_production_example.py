@@ -23,7 +23,6 @@ from langgraph.graph import StateGraph, END
 from guardrails.base import GuardrailChain
 from guardrails.input_guardrails import (
     InputLengthGuardrail,
-    TopicValidationGuardrail,
     RateLimitGuardrail,
 )
 from guardrails.safety_guardrails import (
@@ -31,6 +30,7 @@ from guardrails.safety_guardrails import (
     PromptInjectionGuardrail,
     ContentSafetyGuardrail,
 )
+from guardrails.llm_guardrails import LLMGuardrail
 from guardrails.output_guardrails import OutputLengthGuardrail
 from guardrails.config import create_anthropic_llm, get_anthropic_api_key
 
@@ -47,11 +47,11 @@ class ProductionAgentState(TypedDict):
 
     # Guardrail results (many fields)
     InputLength_result: str
-    TopicValidation_result: str
     RateLimit_result: str
     PIIDetection_result: str
     PromptInjection_result: str
     ContentSafety_result: str
+    TopicValidation_result: str  # LLM-based (optional)
     OutputLength_result: str
 
     # Agent state
@@ -103,23 +103,41 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE, use_llm_sa
         # Layer 2: Security checks
         PromptInjectionGuardrail(strict=True),
 
-        # Layer 3: Content validation
-        TopicValidationGuardrail(
-            allowed_topics=["technology", "programming", "software", "AI", "machine learning"],
-            fuzzy_match=True,
-        ),
-
-        # Layer 4: Privacy protection
+        # Layer 3: Privacy protection
         PIIDetectionGuardrail(
             redact=True,
             strict=False,
         ),
     ]
 
-    # Layer 5: LLM-based content safety (optional, requires API key)
+    # Layer 4 & 5: LLM-based guardrails (optional, requires API key)
     if use_llm_safety and get_anthropic_api_key():
         try:
             llm = create_anthropic_llm()
+
+            # Topic validation using LLM (semantic understanding)
+            guardrails.append(
+                LLMGuardrail(
+                    llm=llm,
+                    system_prompt="You validate if user queries match allowed topics.",
+                    instruction_template="""Determine if this query is about technology, programming, software, AI, or machine learning.
+
+Query: {content}
+
+Respond with JSON:
+{{
+    "is_safe": true/false,  // true if on-topic, false if off-topic
+    "reason": "brief explanation",
+    "confidence": 0.0-1.0
+}}
+
+Be understanding of related topics and variations. Only block clearly off-topic requests.""",
+                    threshold=0.7,
+                    name="TopicValidation"
+                )
+            )
+
+            # Content safety
             guardrails.append(
                 ContentSafetyGuardrail(
                     llm=llm,
@@ -127,9 +145,9 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE, use_llm_sa
                     threshold=0.7,
                 )
             )
-            print("✓ Using Claude 4.5 Haiku for LLM-based content safety\n")
+            print("✓ Using Claude 4.5 Haiku for LLM-based topic validation and content safety\n")
         except Exception as e:
-            print(f"⚠ Could not initialize LLM safety guardrail: {e}\n")
+            print(f"⚠ Could not initialize LLM guardrails: {e}\n")
 
     return GuardrailChain(guardrails)
 
@@ -349,21 +367,21 @@ if __name__ == "__main__":
     print("""
 ✓ Input validation (length, rate limiting)
 ✓ Security checks (prompt injection detection)
-✓ Content validation (topic filtering)
+✓ Content validation (LLM-based semantic topic filtering)
 ✓ Privacy protection (PII redaction)
 ✓ Output validation (length, quality)
 ✓ Error handling
 ✓ Metrics tracking
 
 Additional considerations for production:
-1. Replace keyword-based safety with LLM-based checks
-2. Add logging and monitoring (DataDog, CloudWatch, etc.)
-3. Implement persistent rate limiting (Redis)
-4. Add retry logic for transient failures
-5. Implement A/B testing for guardrail thresholds
-6. Set up alerting for high block rates
-7. Add user feedback mechanism for false positives
-8. Implement guardrail versioning and gradual rollouts
-9. Add cost tracking for LLM-based guardrails
-10. Create admin dashboard for guardrail metrics
+1. Add logging and monitoring (DataDog, CloudWatch, etc.)
+2. Implement persistent rate limiting (Redis)
+3. Add retry logic for transient failures
+4. Implement A/B testing for guardrail thresholds
+5. Set up alerting for high block rates
+6. Add user feedback mechanism for false positives
+7. Implement guardrail versioning and gradual rollouts
+8. Add cost tracking for LLM-based guardrails
+9. Create admin dashboard for guardrail metrics
+10. Add caching for LLM guardrail results (similar queries)
     """)

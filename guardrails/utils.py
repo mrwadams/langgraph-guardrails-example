@@ -6,40 +6,6 @@ import re
 from typing import List, Set
 
 
-# Common profanity words (abbreviated list for demonstration)
-PROFANITY_WORDS = {
-    "badword1", "badword2", "profanity",
-    # Add more as needed
-}
-
-
-def contains_profanity(text: str, custom_words: Set[str] = None) -> tuple[bool, List[str]]:
-    """
-    Check if text contains profanity.
-
-    Args:
-        text: Text to check
-        custom_words: Optional set of additional profanity words
-
-    Returns:
-        Tuple of (contains_profanity, list_of_found_words)
-    """
-    words_to_check = PROFANITY_WORDS.copy()
-    if custom_words:
-        words_to_check.update(custom_words)
-
-    text_lower = text.lower()
-    found_words = []
-
-    for word in words_to_check:
-        # Use word boundaries to avoid false positives
-        pattern = r'\b' + re.escape(word) + r'\b'
-        if re.search(pattern, text_lower):
-            found_words.append(word)
-
-    return len(found_words) > 0, found_words
-
-
 def detect_pii_patterns(text: str) -> dict:
     """
     Detect common PII patterns in text.
@@ -129,36 +95,6 @@ def redact_pii(text: str, redaction_char: str = "*") -> tuple[str, dict]:
     return redacted, pii_found
 
 
-def check_topic_match(text: str, allowed_topics: List[str], fuzzy: bool = False) -> tuple[bool, str]:
-    """
-    Check if text matches allowed topics.
-
-    Args:
-        text: Text to check
-        allowed_topics: List of allowed topic keywords
-        fuzzy: If True, use fuzzy matching (substring)
-
-    Returns:
-        Tuple of (is_match, matched_topic or None)
-    """
-    text_lower = text.lower()
-
-    for topic in allowed_topics:
-        topic_lower = topic.lower()
-
-        if fuzzy:
-            # Fuzzy match - check if topic appears anywhere
-            if topic_lower in text_lower:
-                return True, topic
-        else:
-            # Exact word match
-            pattern = r'\b' + re.escape(topic_lower) + r'\b'
-            if re.search(pattern, text_lower):
-                return True, topic
-
-    return False, None
-
-
 def count_tokens_approximate(text: str) -> int:
     """
     Approximate token count (rough estimate).
@@ -241,28 +177,3 @@ def sanitize_html(text: str) -> str:
     clean = re.sub(r"&[a-zA-Z]+;", "", clean)
 
     return clean
-
-
-def calculate_text_similarity(text1: str, text2: str) -> float:
-    """
-    Calculate simple similarity score between two texts.
-
-    Uses Jaccard similarity on word sets.
-
-    Args:
-        text1: First text
-        text2: Second text
-
-    Returns:
-        Similarity score between 0 and 1
-    """
-    words1 = set(text1.lower().split())
-    words2 = set(text2.lower().split())
-
-    if not words1 or not words2:
-        return 0.0
-
-    intersection = words1.intersection(words2)
-    union = words1.union(words2)
-
-    return len(intersection) / len(union)

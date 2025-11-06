@@ -2,10 +2,16 @@
 Example 8: Semantic Topic Validation with LLM
 ==============================================
 
-This example shows why LLM-based topic validation is superior to keyword matching.
+This example demonstrates why LLM-based topic validation is superior to keyword matching,
+and why keyword-based topic validation was removed from this library.
 
-The keyword-based TopicValidationGuardrail uses simple substring matching which
-leads to false positives and can't understand semantic relationships.
+NOTE: TopicValidationGuardrail has been REMOVED from the library because it was unreliable.
+This example recreates it locally to demonstrate its limitations.
+
+The keyword-based approach uses simple substring matching which leads to:
+- False positives (e.g., "whether" matching "weather")
+- False negatives (missing semantic matches like "umbrella" → weather)
+- No context understanding
 
 An LLM can understand:
 - Semantic similarity (e.g., "forecast" relates to "weather")
@@ -14,11 +20,38 @@ An LLM can understand:
 - Off-topic requests that happen to contain topic keywords
 """
 
-from typing import TypedDict
+from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
-from guardrails.input_guardrails import TopicValidationGuardrail
+from guardrails.base import BaseGuardrail, GuardrailResult, GuardrailAction
 from guardrails.llm_guardrails import LLMGuardrail
 from guardrails.config import create_anthropic_llm, get_anthropic_api_key
+
+
+# Recreate TopicValidationGuardrail locally for demonstration purposes
+# (This was removed from the library due to unreliability)
+class TopicValidationGuardrail(BaseGuardrail):
+    """
+    DEPRECATED: This guardrail was removed from the library.
+    Recreated here only to demonstrate why it's unreliable.
+    """
+    def __init__(self, allowed_topics: List[str], fuzzy_match: bool = True, name: str = None):
+        super().__init__(name=name or "TopicValidation")
+        self.allowed_topics = allowed_topics
+        self.fuzzy_match = fuzzy_match
+
+    def validate(self, content: str, metadata: dict = None) -> GuardrailResult:
+        content_lower = content.lower()
+        for topic in self.allowed_topics:
+            if self.fuzzy_match:
+                if topic.lower() in content_lower:
+                    return GuardrailResult(
+                        action=GuardrailAction.ALLOW,
+                        reason=f"Topic '{topic}' found in input"
+                    )
+        return GuardrailResult(
+            action=GuardrailAction.BLOCK,
+            reason="Input does not match allowed topics"
+        )
 
 
 class AgentState(TypedDict):
