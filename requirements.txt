@@ -2,10 +2,13 @@
 langgraph>=0.0.20
 langchain>=0.1.0
 langchain-core>=0.1.0
+python-dotenv>=1.0.0
 
-# Optional LLM providers (uncomment based on your needs)
+# LLM providers (Anthropic for model-based guardrails)
+langchain-anthropic>=0.1.0
+
+# Optional: OpenAI (alternative provider)
 # langchain-openai>=0.0.5
-# langchain-anthropic>=0.1.0
 
 # Optional: Advanced PII detection
 # presidio-analyzer>=2.2.0

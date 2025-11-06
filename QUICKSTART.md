@@ -16,6 +16,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Optional: Set up for LLM-based guardrails (Claude 3.5 Haiku)
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY from https://console.anthropic.com/
+
 # Or install with optional dependencies
 pip install -e ".[all]"  # Install all optional dependencies
 pip install -e ".[openai]"  # Just OpenAI
@@ -174,23 +178,30 @@ class MyCustomGuardrail(BaseGuardrail):
 
 ## Using with LLMs
 
-For LLM-based guardrails (like `ContentSafetyGuardrail`):
+For LLM-based guardrails with Claude 3.5 Haiku (recommended):
 
 ```python
-from langchain_openai import ChatOpenAI
 from guardrails.safety_guardrails import ContentSafetyGuardrail
+from guardrails.config import create_anthropic_llm
 
-# Set your API key
-import os
-os.environ["OPENAI_API_KEY"] = "your-key-here"
+# Set your ANTHROPIC_API_KEY in .env file, then:
+llm = create_anthropic_llm()  # Uses Claude 3.5 Haiku by default
 
 # Create LLM-based guardrail
 safety_guardrail = ContentSafetyGuardrail(
-    llm=ChatOpenAI(model="gpt-4o-mini", temperature=0),
+    llm=llm,
     safety_categories=["violence", "hate", "sexual"],
     threshold=0.7
 )
 ```
+
+**Why Claude 3.5 Haiku?**
+- Fast: 1-2 second latency
+- Cost-effective: ~$0.25 per million input tokens
+- Excellent at classification tasks
+- Easy setup with .env file
+
+Alternative: Use OpenAI by setting `OPENAI_API_KEY` and calling `create_openai_llm()` from `guardrails.config`
 
 ## Monitoring and Metrics
 

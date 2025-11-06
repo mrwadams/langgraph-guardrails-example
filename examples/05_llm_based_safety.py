@@ -5,17 +5,20 @@ Example 5: LLM-Based Safety Guardrail
 This example demonstrates using an LLM to perform semantic content safety checks.
 Unlike rule-based guardrails, this can understand context and nuance.
 
-Note: This example requires an LLM provider (OpenAI, Anthropic, etc.)
-Set your API key in the environment before running.
+This example uses Claude 3.5 Haiku - fast, cost-effective, and accurate for guardrails.
+
+Setup:
+1. Copy .env.example to .env
+2. Add your Anthropic API key to .env
+3. Run this example
+
+If no API key is set, it falls back to keyword-based checking.
 """
 
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from guardrails.safety_guardrails import ContentSafetyGuardrail
-
-# Uncomment one of these based on your provider:
-# from langchain_openai import ChatOpenAI
-# from langchain_anthropic import ChatAnthropic
+from guardrails.config import create_anthropic_llm, get_anthropic_api_key
 
 
 # Define the state
@@ -29,18 +32,26 @@ class AgentState(TypedDict):
 
 def create_safety_guardrail():
     """
-    Create an LLM-based content safety guardrail.
+    Create an LLM-based content safety guardrail using Claude 3.5 Haiku.
 
-    Uncomment and configure based on your LLM provider:
+    Falls back to keyword-based checking if no API key is set.
     """
-    # Option 1: OpenAI
-    # llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-    # Option 2: Anthropic
-    # llm = ChatAnthropic(model="claude-3-haiku-20240307", temperature=0)
-
-    # For demo purposes without API key, we'll use None (falls back to keyword check)
     llm = None
+
+    # Try to create LLM if API key is available
+    if get_anthropic_api_key():
+        try:
+            llm = create_anthropic_llm()
+            print("✓ Using Claude 3.5 Haiku for LLM-based safety checking\n")
+        except Exception as e:
+            print(f"⚠ Could not initialize Claude: {e}")
+            print("Falling back to keyword-based checking\n")
+    else:
+        print("ℹ No ANTHROPIC_API_KEY found in environment")
+        print("Using keyword-based fallback. For better results:")
+        print("  1. Copy .env.example to .env")
+        print("  2. Add your Anthropic API key")
+        print("  3. Run this example again\n")
 
     return ContentSafetyGuardrail(
         llm=llm,
@@ -137,36 +148,38 @@ if __name__ == "__main__":
     print()
 
     print("\n" + "=" * 60)
-    print("PRODUCTION USAGE:")
+    print("SETUP INSTRUCTIONS:")
     print("=" * 60)
     print("""
-To use with a real LLM for better safety checking:
+To enable LLM-based safety checking with Claude 3.5 Haiku:
 
-1. Install your LLM provider:
-   pip install langchain-openai  # for OpenAI
-   # OR
-   pip install langchain-anthropic  # for Anthropic
+1. Copy the example environment file:
+   cp .env.example .env
 
-2. Set your API key:
-   export OPENAI_API_KEY='your-key'
-   # OR
-   export ANTHROPIC_API_KEY='your-key'
+2. Get your Anthropic API key:
+   https://console.anthropic.com/
 
-3. Update the create_safety_guardrail() function:
-   from langchain_openai import ChatOpenAI
-   llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+3. Add your API key to .env:
+   ANTHROPIC_API_KEY=your_api_key_here
 
-   return ContentSafetyGuardrail(
-       llm=llm,
-       safety_categories=["violence", "hate", "sexual", "self-harm", "illegal"],
-       threshold=0.7,
-   )
+4. Run this example again:
+   python examples/05_llm_based_safety.py
 
-Benefits of LLM-based safety:
+Why Claude 3.5 Haiku for guardrails?
+- Fast: Low latency for real-time validation
+- Cost-effective: ~1/10th the cost of Claude 3.5 Sonnet
+- Accurate: Excellent at classification tasks
+- Reliable: High uptime and consistent performance
+
+Benefits of LLM-based safety over keyword matching:
 - Understands context (e.g., "kill" in "kill the process" vs real violence)
 - Handles nuanced cases better than keywords
 - Can adapt to new safety patterns
-- Reduces false positives
+- Significantly reduces false positives
+- Better at detecting subtle manipulation attempts
+
+Alternative: You can also use OpenAI models by setting OPENAI_API_KEY
+and using create_openai_llm() from guardrails.config
     """)
 
     # Check metrics

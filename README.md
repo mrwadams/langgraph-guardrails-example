@@ -88,27 +88,41 @@ def multi_layer_guardrail(state: State) -> Literal["reject_unsafe", "reject_offt
 ### Pattern 4: LLM-Based Guardrails (Semantic)
 
 ```python
-async def llm_safety_guardrail(state: State) -> State:
-    """Use an LLM to check content safety"""
-    safety_check = await safety_llm.ainvoke(
-        f"Is this safe to process? {state['input']}"
-    )
-    return {"is_safe": safety_check.safe, "safety_reason": safety_check.reason}
+from guardrails.safety_guardrails import ContentSafetyGuardrail
+from guardrails.config import create_anthropic_llm
 
-workflow.add_node("llm_guardrail", llm_safety_guardrail)
+# Use Claude 3.5 Haiku for fast, accurate content safety checking
+llm = create_anthropic_llm()  # Loads from .env file
+
+safety_guardrail = ContentSafetyGuardrail(
+    llm=llm,
+    safety_categories=["violence", "hate", "sexual", "self-harm"],
+    threshold=0.7
+)
+
+workflow.add_node("safety_check", safety_guardrail.check)
 ```
 
 **Use when:** Rule-based checks aren't sufficient; need semantic understanding
+
+**Why Claude 3.5 Haiku?**
+- Fast: ~1-2 second latency for guardrail checks
+- Cost-effective: ~$0.25 per million input tokens
+- Accurate: Excellent at classification and safety tasks
+- Context-aware: Understands nuance better than keywords
 
 ## Repository Structure
 
 ```
 langgraph-guardrails-example/
 ├── README.md                          # This file
+├── QUICKSTART.md                      # Quick start guide
 ├── requirements.txt                   # Dependencies
+├── .env.example                       # Environment variables template
 ├── guardrails/
 │   ├── __init__.py
 │   ├── base.py                       # Base guardrail classes
+│   ├── config.py                     # Configuration & LLM setup
 │   ├── input_guardrails.py           # Input validation guardrails
 │   ├── output_guardrails.py          # Output filtering guardrails
 │   ├── safety_guardrails.py          # Content safety guardrails
@@ -118,7 +132,7 @@ langgraph-guardrails-example/
     ├── 02_pii_redaction.py           # PII detection and redaction
     ├── 03_output_validation.py       # Response validation
     ├── 04_multi_layer.py             # Combined guardrails
-    ├── 05_llm_based_safety.py        # LLM-powered safety checks
+    ├── 05_llm_based_safety.py        # LLM-powered safety checks (Claude 3.5 Haiku)
     └── 06_production_example.py      # Full production setup
 ```
 
@@ -127,7 +141,16 @@ langgraph-guardrails-example/
 ### Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd langgraph-guardrails-example
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Optional: Set up environment for LLM-based guardrails
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
 ```
 
 ### Basic Example

@@ -6,6 +6,7 @@ This package provides reusable guardrail components for:
 - Output validation and filtering
 - Content safety checks
 - PII detection and redaction
+- LLM-based semantic validation (Claude 3.5 Haiku)
 """
 
 from guardrails.base import (
@@ -26,6 +27,11 @@ from guardrails.safety_guardrails import (
     PIIDetectionGuardrail,
     ContentSafetyGuardrail,
 )
+from guardrails.config import (
+    create_anthropic_llm,
+    create_openai_llm,
+    get_anthropic_api_key,
+)
 
 __all__ = [
     # Base classes
@@ -42,6 +48,10 @@ __all__ = [
     # Safety guardrails
     "PIIDetectionGuardrail",
     "ContentSafetyGuardrail",
+    # Configuration
+    "create_anthropic_llm",
+    "create_openai_llm",
+    "get_anthropic_api_key",
 ]
 
 __version__ = "0.1.0"

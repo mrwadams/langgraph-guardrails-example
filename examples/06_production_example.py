@@ -4,6 +4,7 @@ Example 6: Production-Ready Multi-Guardrail System
 
 This example demonstrates a production-ready setup with:
 - Multi-layer input validation
+- Optional LLM-based content safety (Claude 3.5 Haiku)
 - Agent processing with tool calls
 - Output validation
 - Error handling
@@ -11,6 +12,10 @@ This example demonstrates a production-ready setup with:
 - Configurable safety levels
 
 This is close to what you'd deploy in a real production system.
+
+Setup:
+- For basic guardrails: Works out of the box
+- For LLM-based safety: Add ANTHROPIC_API_KEY to .env file
 """
 
 from typing import TypedDict, Literal
@@ -24,8 +29,10 @@ from guardrails.input_guardrails import (
 from guardrails.safety_guardrails import (
     PIIDetectionGuardrail,
     PromptInjectionGuardrail,
+    ContentSafetyGuardrail,
 )
 from guardrails.output_guardrails import OutputLengthGuardrail
+from guardrails.config import create_anthropic_llm, get_anthropic_api_key
 
 
 # Define the state
@@ -44,6 +51,7 @@ class ProductionAgentState(TypedDict):
     RateLimit_result: str
     PIIDetection_result: str
     PromptInjection_result: str
+    ContentSafety_result: str
     OutputLength_result: str
 
     # Agent state
@@ -58,8 +66,14 @@ class SafetyLevel:
     PERMISSIVE = "permissive"
 
 
-def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE):
-    """Create input guardrails based on safety level"""
+def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE, use_llm_safety: bool = True):
+    """
+    Create input guardrails based on safety level.
+
+    Args:
+        safety_level: Security strictness level
+        use_llm_safety: If True and API key available, use Claude 3.5 Haiku for content safety
+    """
 
     if safety_level == SafetyLevel.STRICT:
         max_length = 500
@@ -74,7 +88,7 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE):
         rate_limit_per_min = 10
         rate_limit_per_hour = 100
 
-    return GuardrailChain([
+    guardrails = [
         # Layer 1: Fast, cheap checks
         InputLengthGuardrail(
             min_length=3,
@@ -100,7 +114,24 @@ def create_input_guardrails(safety_level: str = SafetyLevel.MODERATE):
             redact=True,
             strict=False,
         ),
-    ])
+    ]
+
+    # Layer 5: LLM-based content safety (optional, requires API key)
+    if use_llm_safety and get_anthropic_api_key():
+        try:
+            llm = create_anthropic_llm()
+            guardrails.append(
+                ContentSafetyGuardrail(
+                    llm=llm,
+                    safety_categories=["violence", "hate", "sexual", "self-harm", "illegal"],
+                    threshold=0.7,
+                )
+            )
+            print("✓ Using Claude 3.5 Haiku for LLM-based content safety\n")
+        except Exception as e:
+            print(f"⚠ Could not initialize LLM safety guardrail: {e}\n")
+
+    return GuardrailChain(guardrails)
 
 
 def create_output_guardrails():
