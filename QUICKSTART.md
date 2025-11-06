@@ -109,7 +109,7 @@ python examples/06_semantic_topic_validation.py
 # Embedding vs LLM comparison
 python examples/07_embedding_vs_llm_comparison.py
 
-# LM Studio for local embeddings
+# Local embedding models (using LM Studio as example)
 python examples/08_lm_studio_embeddings.py
 ```
 

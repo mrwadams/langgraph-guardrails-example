@@ -1,27 +1,33 @@
 """
-Example 8: Using LM Studio for Local Embeddings
-================================================
+Example 8: Local Embedding Models for Semantic Guardrails
+==========================================================
 
-This example demonstrates how to use LM Studio with the semantic similarity guardrails.
-LM Studio provides a user-friendly GUI for running embedding models locally with an
-OpenAI-compatible API endpoint.
+This example demonstrates using local embedding models for fast, cost-effective semantic
+similarity validation. Embeddings provide semantic understanding (like LLMs) but are much
+faster (10-50ms vs 1-2s) and cheaper/free.
 
-Benefits of LM Studio:
-- Free and runs locally (no API costs)
-- User-friendly GUI for model management
-- Run various embedding models (BERT, MiniLM, E5, nomic-embed, etc.)
-- OpenAI-compatible API (easy integration)
-- Switch models without changing code
-- Monitor performance in real-time
+Key Technique: Semantic Similarity via Embeddings
+- Convert text and topics to vectors (embeddings)
+- Use cosine similarity to measure semantic closeness
+- 85-95% accuracy for topic validation
+- 10-100x faster than LLM-based validation
+- Free when running locally
 
-Setup Instructions:
-1. Download LM Studio from https://lmstudio.ai/
-2. In LM Studio, go to the "Search" tab
-3. Search for and download an embedding model (e.g., "nomic-embed-text", "all-MiniLM-L6-v2")
-4. Go to the "Local Server" tab
-5. Load your embedding model
-6. Click "Start Server" (default: http://localhost:1234)
-7. Run this example!
+Three Ways to Run Local Embeddings:
+
+1. **SentenceTransformer (Simplest)** - Direct Python, no external setup
+   provider = create_embedding_provider("local")
+
+2. **LM Studio (GUI Management)** - Experiment with different models visually
+   - Download from https://lmstudio.ai/
+   - Load any GGUF embedding model via GUI
+   - Start server, use OpenAI-compatible endpoint
+   provider = create_embedding_provider("lm-studio", base_url="http://localhost:1234/v1")
+
+3. **OpenAI API (Highest Quality)** - Cloud-based, small cost (~$0.00002/request)
+   provider = create_embedding_provider("openai")
+
+This example uses option #2 (LM Studio) to show OpenAI-compatible endpoint usage.
 """
 
 from typing import TypedDict
@@ -185,29 +191,40 @@ print(f"  Block rate: {metrics['block_rate']:.2%}")
 print()
 
 print("=" * 70)
-print("COMPARISON: LM Studio vs Other Providers")
+print("EMBEDDING PROVIDERS: Choosing the Right Option")
 print("=" * 70)
 print()
-print("1. LM Studio (this example):")
-print("   ✓ Free and runs locally")
-print("   ✓ User-friendly GUI")
-print("   ✓ Easy model switching")
-print("   ✓ OpenAI-compatible API")
-print("   ✓ No API costs")
-print("   ✓ Privacy (data stays local)")
+print("All three providers use the same technique (embedding similarity)")
+print("but differ in where/how embeddings are generated:")
 print()
-print("2. SentenceTransformer (create_embedding_provider('local')):")
-print("   ✓ Free and runs locally")
-print("   ✓ Python-only (no GUI)")
-print("   ✓ Good for scripts/automation")
-print("   - Manual model management")
+print("Local (SentenceTransformer):")
+print("   ✓ Simplest setup - pure Python")
+print("   ✓ Free, private, offline-capable")
+print("   ✓ Best for: Privacy-critical apps, low volume, prototyping")
+print("   - Adds compute/memory load to your servers")
+print("   - Slower cold starts (model loading)")
 print()
-print("3. OpenAI (create_embedding_provider('openai')):")
-print("   ✓ High quality embeddings")
-print("   ✓ No local setup required")
-print("   - Costs money (~$0.00002/request)")
-print("   - Data sent to OpenAI")
-print("   - Requires API key")
+print("Local (LM Studio):")
+print("   ✓ GUI for model experimentation")
+print("   ✓ Free, private, easy model switching")
+print("   ✓ Best for: Development, testing different models")
+print("   - Requires external application running")
+print()
+print("Cloud (OpenAI):")
+print("   ✓ Highest quality embeddings")
+print("   ✓ No local compute/memory overhead")
+print("   ✓ Best for: Production at scale, highest accuracy needs")
+print("   - Small cost (~$0.00002/request)")
+print("   - Data sent outside your infrastructure")
+print()
+print("The embedding technique is the same - only the source differs!")
+print()
+print("PRODUCTION GUIDANCE:")
+print("  • High volume (1000+ req/min): Use OpenAI (no compute overhead)")
+print("  • Privacy required: Use SentenceTransformer (data never leaves)")
+print("  • Cost-sensitive + moderate volume: Use SentenceTransformer")
+print("  • Need highest accuracy: Use OpenAI text-embedding-3-large")
+print("  • Prototyping/development: Use any (start simple)")
 print()
 
 print("=" * 70)

@@ -142,30 +142,31 @@ Use embedding models to validate topic relevance via semantic similarity. Fast, 
 
 **Embedding Providers:**
 
-- **`SentenceTransformerProvider`** - Local embeddings (FREE, no API required)
-  - Model: all-MiniLM-L6-v2 (default, fast, 384 dims)
-  - Model: all-mpnet-base-v2 (higher quality, 768 dims)
-  - Model: paraphrase-multilingual (50+ languages)
-  - **Best for**: Python-only projects, quick prototyping
+Three options for generating embeddings, each with different tradeoffs:
 
-- **LM Studio Provider** - Local embeddings with GUI (FREE, RECOMMENDED)
-  - **Download**: [LM Studio](https://lmstudio.ai/) - user-friendly interface for running embedding models locally
-  - **Benefits**:
-    - Easy model selection and management via GUI
-    - Run various embedding models (BERT, MiniLM, E5, etc.)
-    - OpenAI-compatible API endpoint
-    - Switch models without code changes
-    - Monitor performance in real-time
-  - **Setup**: Load an embedding model in LM Studio, start the server, use provider type `"lm-studio"`
-  - **Default endpoint**: `http://localhost:1234/v1`
+**1. Local Embeddings (Free, Private)**
+- **`SentenceTransformerProvider`** - Direct Python integration
+  - Models: all-MiniLM-L6-v2 (default, fast), all-mpnet-base-v2 (quality), paraphrase-multilingual (50+ languages)
+  - Best for: Privacy-critical applications, prototyping, low-volume use
+  - Tradeoffs: Adds compute/memory to your servers, slower cold starts
+  - Runs in-process with your application
 
-- **`OpenAIEmbeddingProvider`** - OpenAI embeddings or compatible APIs
-  - Model: text-embedding-3-small (~$0.00002/request)
-  - Model: text-embedding-3-large (higher accuracy)
-  - **Also supports**: Custom OpenAI-compatible endpoints (including LM Studio)
+- **Via LM Studio** - Local with GUI management
+  - Uses `OpenAIEmbeddingProvider` with custom `base_url` pointing to LM Studio
+  - Models: Any GGUF embedding model (BERT, MiniLM, E5, nomic-embed, etc.)
+  - Best for: Development and experimenting with different models
+  - Download from [lmstudio.ai](https://lmstudio.ai/)
 
-- **`AnthropicEmbeddingProvider`** - Anthropic/Voyage embeddings
-  - Note: Placeholder for future Anthropic embedding API
+**2. Cloud Embeddings (Paid, High Quality)**
+- **`OpenAIEmbeddingProvider`** - OpenAI's embedding API
+  - Models: text-embedding-3-small (~$0.00002/request), text-embedding-3-large (higher accuracy)
+  - Best for: Production at scale, highest quality, no local compute overhead
+  - Tradeoffs: Small cost per request, data sent to OpenAI
+  - Supports custom OpenAI-compatible endpoints
+
+**3. Future: Anthropic/Voyage**
+- **`AnthropicEmbeddingProvider`** - Placeholder for future API
+  - Not yet available
 
 **When to use:**
 - High volume (1000+ requests/min)
@@ -326,36 +327,27 @@ workflow.add_node("validate", chain.check)
 from guardrails.embedding_guardrails import SemanticSimilarityGuardrail
 from guardrails.config import create_embedding_provider
 
-# Option A: LM Studio (RECOMMENDED - local, GUI, flexible)
-# 1. Download LM Studio from https://lmstudio.ai/
-# 2. Load an embedding model (e.g., nomic-embed-text, all-MiniLM-L6-v2)
-# 3. Start the local server (default: localhost:1234)
+# Fast semantic validation using embedding similarity
+# Much faster than LLM (10-50ms vs 1-2s), understands semantics unlike keywords
 topic_guardrail = SemanticSimilarityGuardrail(
     topic_descriptions=[
         "programming and software development",
         "technology and computer science"
     ],
-    embedding_provider=create_embedding_provider(
-        "lm-studio",
-        base_url="http://localhost:1234/v1",  # LM Studio default
-        model="your-model-name"                # Model loaded in LM Studio
-    ),
+    embedding_provider=create_embedding_provider("local"),  # Free, runs locally
     similarity_threshold=0.70
 )
 workflow.add_node("topic_check", topic_guardrail.check)
 
-# Option B: SentenceTransformer (local, Python-only, no GUI)
-topic_guardrail = SemanticSimilarityGuardrail(
-    topic_descriptions=["weather forecasts and climate"],
-    embedding_provider=create_embedding_provider("local"),
-    similarity_threshold=0.70
-)
+# Alternative: OpenAI embeddings (higher quality, small cost)
+embedding_provider = create_embedding_provider("openai")
 
-# Option C: OpenAI embeddings (cloud, paid, high quality)
-topic_guardrail = SemanticSimilarityGuardrail(
-    topic_descriptions=["weather forecasts and climate"],
-    embedding_provider=create_embedding_provider("openai"),
-    similarity_threshold=0.75
+# Alternative: LM Studio for local embeddings with GUI
+# Useful for experimenting with different embedding models
+embedding_provider = create_embedding_provider(
+    "lm-studio",
+    base_url="http://localhost:1234/v1",
+    model="your-model-name"
 )
 ```
 
@@ -473,7 +465,7 @@ See the `examples/` directory for complete working examples:
 - `05_custom_llm_guardrails.py` - Custom LLM validation
 - `06_semantic_topic_validation.py` - Why LLM-based topic validation is better
 - `07_embedding_vs_llm_comparison.py` - Embedding vs LLM performance comparison
-- `08_lm_studio_embeddings.py` - **Using LM Studio for local embeddings with GUI**
+- `08_lm_studio_embeddings.py` - Local embedding models for semantic guardrails
 
 ## Contributing
 

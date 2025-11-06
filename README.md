@@ -194,7 +194,7 @@ langgraph-guardrails-example/
 │   ├── 05_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
 │   ├── 06_semantic_topic_validation.py  # LLM vs keyword topic validation comparison
 │   ├── 07_embedding_vs_llm_comparison.py  # Embedding vs LLM performance
-│   └── 08_lm_studio_embeddings.py    # LM Studio for local embeddings with GUI
+│   └── 08_lm_studio_embeddings.py    # Local embedding models for semantic guardrails
 └── docs/
     └── diagrams/                     # Generated Mermaid diagrams
 ```
@@ -412,7 +412,7 @@ See the `examples/` directory for runnable code covering:
 5. **Custom LLM Guardrails** (`05_custom_llm_guardrails.py`) - Flexible prompt-based validation
 6. **Semantic Topic Validation** (`06_semantic_topic_validation.py`) - LLM vs keyword comparison
 7. **Embedding vs LLM** (`07_embedding_vs_llm_comparison.py`) - Performance comparison
-8. **LM Studio Embeddings** (`08_lm_studio_embeddings.py`) - Local embeddings with GUI
+8. **Local Embedding Models** (`08_lm_studio_embeddings.py`) - Using local embeddings for semantic guardrails
 
 ## Contributing
 
