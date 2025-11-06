@@ -9,20 +9,12 @@ This directory contains reusable guardrail components for LangGraph workflows. E
 | `BaseGuardrail` | base.py | Base Class | Extend to create custom guardrails |
 | `GuardrailChain` | base.py | Combiner | Chain multiple guardrails together |
 | `ConditionalGuardrail` | base.py | Wrapper | Apply guardrails conditionally |
-| `TopicValidationGuardrail` | input_guardrails.py | Input | Validate input topics |
-| `ProfanityFilterGuardrail` | input_guardrails.py | Input | Filter profanity |
 | `InputLengthGuardrail` | input_guardrails.py | Input | Enforce length limits |
 | `RateLimitGuardrail` | input_guardrails.py | Input | Rate limit by user |
-| `InputFormatGuardrail` | input_guardrails.py | Input | Regex format validation |
-| `LanguageDetectionGuardrail` | input_guardrails.py | Input | Validate language |
 | `OutputFormatGuardrail` | output_guardrails.py | Output | Validate response format |
 | `OutputLengthGuardrail` | output_guardrails.py | Output | Enforce output length |
-| `FactualityGuardrail` | output_guardrails.py | Output | Check factual accuracy |
-| `NoHallucinationGuardrail` | output_guardrails.py | Output | Detect hallucinations |
-| `SensitiveContentFilterGuardrail` | output_guardrails.py | Output | Filter sensitive data |
 | `PIIDetectionGuardrail` | safety_guardrails.py | Safety | Detect/redact PII |
 | `ContentSafetyGuardrail` | safety_guardrails.py | Safety | Content moderation (LLM) |
-| `ToxicityGuardrail` | safety_guardrails.py | Safety | Toxicity detection |
 | `PromptInjectionGuardrail` | safety_guardrails.py | Safety | Prevent prompt injection |
 | `CodeExecutionGuardrail` | safety_guardrails.py | Safety | Code safety validation |
 | `LLMGuardrail` | llm_guardrails.py | LLM-Based | Custom prompt-based validation |
@@ -64,32 +56,17 @@ Pre-process and validate user inputs before they reach your agent.
 
 **Guardrails:**
 
-1. **`TopicValidationGuardrail`** - Restrict to allowed topics
-   - **Use case**: Chatbot that only answers questions about specific domains
-   - **Example**: Weather bot that blocks non-weather questions
-   - **Features**: Fuzzy matching, custom rejection messages
-
-2. **`ProfanityFilterGuardrail`** - Filter inappropriate language
-   - **Use case**: Family-friendly applications
-   - **Features**: Custom word lists, strict/lenient modes
-
-3. **`InputLengthGuardrail`** - Enforce min/max input length
+1. **`InputLengthGuardrail`** - Enforce min/max input length
    - **Use case**: Prevent too-short or too-long inputs
    - **Features**: Character or token counting, auto-truncation option
 
-4. **`RateLimitGuardrail`** - Limit requests per user/session
+2. **`RateLimitGuardrail`** - Limit requests per user/session
    - **Use case**: Prevent abuse, manage costs
    - **Features**: Per-minute and per-hour limits, user-based tracking
 
-5. **`InputFormatGuardrail`** - Validate input format with regex
-   - **Use case**: Ensure inputs match expected patterns (email, phone, etc.)
-   - **Features**: Custom regex patterns, invert matching
-
-6. **`LanguageDetectionGuardrail`** - Validate input language
-   - **Use case**: Only process specific languages
-   - **Features**: Multiple language support (requires langdetect)
-
 **When to use:** Add as early nodes in your graph to filter/validate before processing.
+
+**Note:** For semantic validation like topic filtering, use LLM-based guardrails (see `llm_guardrails.py`). Keyword-based topic validation has been removed due to unreliability (false positives/negatives).
 
 ---
 
@@ -107,19 +84,9 @@ Validate and filter agent responses before returning to users.
    - **Use case**: Keep responses concise or ensure minimum detail
    - **Features**: Auto-truncation, character or token counting
 
-3. **`FactualityGuardrail`** - Validate factual claims
-   - **Use case**: Check responses against known facts
-   - **Features**: Reference data checking, custom validation functions
-
-4. **`NoHallucinationGuardrail`** - Detect potential hallucinations
-   - **Use case**: Ensure high-confidence, cited responses
-   - **Features**: Confidence thresholds, citation requirements
-
-5. **`SensitiveContentFilterGuardrail`** - Filter sensitive information
-   - **Use case**: Prevent leaking passwords, API keys, secrets
-   - **Features**: Pattern-based blocking, auto-redaction
-
 **When to use:** Add before END node to validate agent outputs before delivery.
+
+**Note:** For factual validation or hallucination detection, use LLM-based guardrails with custom prompts rather than simple pattern matching.
 
 ---
 
@@ -139,15 +106,11 @@ Content moderation, PII protection, and security validation.
    - **Features**: Uses Claude 4.5 Haiku for context-aware moderation
    - **Categories**: Violence, hate speech, sexual content, self-harm, illegal
 
-3. **`ToxicityGuardrail`** - Detect toxic/rude content
-   - **Use case**: Maintain respectful communication
-   - **Features**: Can use Detoxify model or keyword fallback
-
-4. **`PromptInjectionGuardrail`** - Prevent prompt injection attacks
+3. **`PromptInjectionGuardrail`** - Prevent prompt injection attacks
    - **Use case**: Security - prevent instruction override attempts
    - **Features**: Detects common injection patterns
 
-5. **`CodeExecutionGuardrail`** - Validate code safety
+4. **`CodeExecutionGuardrail`** - Validate code safety
    - **Use case**: When agent generates or executes code
    - **Features**: Whitelist imports, block dangerous functions
 
@@ -168,7 +131,7 @@ Use Claude 4.5 Haiku to validate content with custom prompts. More flexible and 
      - System prompt + instruction template
      - Custom response parsing
      - Fallback function support
-   - **Example**: Brand guidelines, legal compliance, custom policies
+   - **Example**: Brand guidelines, legal compliance, custom policies, topic validation
 
 2. **`BrandSafetyGuardrail`** - Validate against brand values
    - **Use case**: Ensure content aligns with company values
@@ -190,6 +153,7 @@ Use Claude 4.5 Haiku to validate content with custom prompts. More flexible and 
 - Need to understand context (e.g., "kill the process" vs violence)
 - Domain-specific validation (legal, medical, technical)
 - Tone, intent, or style checking
+- Topic validation with semantic understanding
 
 **Benefits:**
 - Context-aware: Understands nuance
@@ -222,15 +186,12 @@ Utilities for configuring guardrails and creating LLM instances.
 Common utility functions used across guardrails.
 
 **Functions:**
-- `contains_profanity()` - Check for profanity
 - `detect_pii_patterns()` - Find PII in text
 - `redact_pii()` - Remove PII from text
-- `check_topic_match()` - Match topics with fuzzy logic
 - `count_tokens_approximate()` - Estimate token count
 - `truncate_to_length()` - Truncate text safely
 - `extract_json_from_text()` - Parse JSON from LLM responses
 - `sanitize_html()` - Remove HTML tags
-- `calculate_text_similarity()` - Compare text similarity
 
 ---
 
@@ -259,24 +220,26 @@ See `generate_diagrams.py` in the root directory for batch generation.
 
 ### Pattern 1: Single Guardrail
 ```python
-from guardrails.input_guardrails import TopicValidationGuardrail
+from guardrails.input_guardrails import InputLengthGuardrail
 
-guardrail = TopicValidationGuardrail(allowed_topics=["weather"])
+guardrail = InputLengthGuardrail(min_length=3, max_length=1000)
 workflow.add_node("validate", guardrail.check)
 workflow.add_conditional_edges("validate", guardrail.route, {
-    "continue": "agent",
-    "reject": "rejection"
+    "allow": "agent",
+    "block": "rejection"
 })
 ```
 
 ### Pattern 2: Chained Guardrails
 ```python
 from guardrails.base import GuardrailChain
+from guardrails.input_guardrails import InputLengthGuardrail, RateLimitGuardrail
+from guardrails.safety_guardrails import PIIDetectionGuardrail
 
 chain = GuardrailChain([
     InputLengthGuardrail(max_length=1000),
-    ProfanityFilterGuardrail(),
-    TopicValidationGuardrail(allowed_topics=["tech"]),
+    RateLimitGuardrail(max_requests_per_hour=100),
+    PIIDetectionGuardrail(redact=True),
 ])
 workflow.add_node("validate", chain.check)
 ```
@@ -286,19 +249,23 @@ workflow.add_node("validate", chain.check)
 from guardrails.llm_guardrails import LLMGuardrail
 from guardrails.config import create_anthropic_llm
 
-custom = LLMGuardrail(
+# Topic validation with semantic understanding
+topic_guardrail = LLMGuardrail(
     llm=create_anthropic_llm(),
-    instruction_template="""Check if this follows our policies:
-    {content}
+    system_prompt="You validate if queries are about technology.",
+    instruction_template="""Is this query about technology?
 
-    Respond: {{"is_safe": bool, "reason": str}}"""
+Query: {content}
+
+Respond: {{"is_safe": bool, "reason": str, "confidence": float}}"""
 )
-workflow.add_node("custom_check", custom.check)
+workflow.add_node("topic_check", topic_guardrail.check)
 ```
 
 ### Pattern 4: Conditional Application
 ```python
 from guardrails.base import ConditionalGuardrail
+from guardrails.input_guardrails import RateLimitGuardrail
 
 conditional = ConditionalGuardrail(
     condition=lambda state: state.get("user_type") != "premium",
@@ -311,9 +278,9 @@ conditional = ConditionalGuardrail(
 1. **Layer Your Guardrails**: Start with fast, cheap checks before expensive LLM calls
    ```python
    GuardrailChain([
-       InputLengthGuardrail(),      # Cheap
-       ProfanityFilterGuardrail(),  # Fast regex
-       LLMGuardrail(),              # Expensive, but accurate
+       InputLengthGuardrail(),        # Cheap
+       PromptInjectionGuardrail(),    # Fast pattern matching
+       ContentSafetyGuardrail(llm),   # Expensive, but accurate
    ])
    ```
 
@@ -340,9 +307,9 @@ conditional = ConditionalGuardrail(
 
 ## When to Use Which Guardrail
 
-**Use keyword/pattern matching when:**
-- Rules are simple and explicit (profanity, PII patterns)
-- Speed is critical (< 100ms)
+**Use simple validation (pattern/length checks) when:**
+- Rules are simple and explicit (length limits, PII patterns)
+- Speed is critical (< 10ms)
 - Want deterministic results
 - Cost is a constraint
 
@@ -351,26 +318,44 @@ conditional = ConditionalGuardrail(
 - Need context awareness
 - Validating tone, intent, or style
 - Domain expertise required
+- Topic validation (keyword matching is unreliable)
+- Content requires semantic understanding
 
 **Layer both for best results:**
 ```python
 GuardrailChain([
-    ProfanityFilterGuardrail(),     # Fast keyword check
-    PromptInjectionGuardrail(),      # Fast pattern check
-    ContentSafetyGuardrail(llm),     # LLM for nuanced cases
+    InputLengthGuardrail(),           # Fast length check
+    PromptInjectionGuardrail(),       # Fast pattern check
+    LLMGuardrail(llm, ...),          # Semantic topic validation
+    ContentSafetyGuardrail(llm),      # LLM for nuanced cases
 ])
 ```
 
 ## Examples
 
 See the `examples/` directory for complete working examples:
-- `01_simple_input_guardrail.py` - Basic topic validation
 - `02_pii_redaction.py` - PII detection and redaction
 - `03_output_validation.py` - Output format validation
-- `04_multi_layer.py` - Chained guardrails
 - `05_llm_based_safety.py` - LLM-powered safety
-- `06_production_example.py` - Production setup
+- `06_production_example.py` - Production setup with LLM topic validation
 - `07_custom_llm_guardrails.py` - Custom LLM validation
+- `08_semantic_topic_validation.py` - Why LLM-based topic validation is better
+
+## Removed Guardrails
+
+The following guardrails were removed due to unreliability (false positives/negatives from crude pattern matching):
+
+**Removed:**
+- `TopicValidationGuardrail` - Use `LLMGuardrail` for semantic topic validation instead
+- `ProfanityFilterGuardrail` - Use `ContentSafetyGuardrail` with LLM instead
+- `InputFormatGuardrail` - Brittle regex validation
+- `LanguageDetectionGuardrail` - Unreliable optional dependency
+- `FactualityGuardrail` - Text similarity ≠ factual accuracy
+- `NoHallucinationGuardrail` - Crude keyword checking
+- `SensitiveContentFilterGuardrail` - Use PII detection or custom LLM guardrail
+- `ToxicityGuardrail` - Use `ContentSafetyGuardrail` with LLM instead
+
+For all semantic validation needs (topic, tone, profanity, toxicity, etc.), use LLM-based guardrails which understand context and nuance.
 
 ## Contributing
 
@@ -385,5 +370,4 @@ To add a new guardrail:
 ## Support
 
 - Full documentation: See main `README.md`
-- Quick start: See `QUICKSTART.md`
 - Issues: GitHub Issues
