@@ -17,6 +17,8 @@ This directory contains reusable guardrail components for LangGraph workflows. E
 | `ContentSafetyGuardrail` | safety_guardrails.py | Safety | Content moderation (LLM) |
 | `PromptInjectionGuardrail` | safety_guardrails.py | Safety | Prevent prompt injection |
 | `CodeExecutionGuardrail` | safety_guardrails.py | Safety | Code safety validation |
+| `SemanticSimilarityGuardrail` | embedding_guardrails.py | Embedding | Fast topic validation via embeddings |
+| `MultiModalSemanticGuardrail` | embedding_guardrails.py | Embedding | Allow/block topics with embeddings |
 | `LLMGuardrail` | llm_guardrails.py | LLM-Based | Custom prompt-based validation |
 | `BrandSafetyGuardrail` | llm_guardrails.py | LLM-Based | Brand values enforcement |
 | `ToneGuardrail` | llm_guardrails.py | LLM-Based | Tone/style validation |
@@ -118,6 +120,66 @@ Content moderation, PII protection, and security validation.
 
 ---
 
+### `embedding_guardrails.py` - Fast Semantic Similarity Validation
+
+Use embedding models to validate topic relevance via semantic similarity. Fast, cost-effective middle ground between keyword matching (unreliable) and LLM validation (slower/costlier).
+
+**Guardrails:**
+
+1. **`SemanticSimilarityGuardrail`** - Topic validation using embeddings
+   - **Use case**: High-volume topic filtering with semantic understanding
+   - **Features**:
+     - Pre-compute and cache topic embeddings
+     - Cosine similarity matching
+     - Multiple embedding provider support
+     - Configurable similarity thresholds
+     - Deterministic results
+   - **Example**: Weather bot that understands "umbrella" relates to weather
+   - **Performance**: 10-50ms, 85-95% accuracy
+
+2. **`MultiModalSemanticGuardrail`** - Allow + block topic lists
+   - **Use case**: Topics with both allowed and explicitly blocked categories
+   - **Features**: Separate thresholds for allow/block
+   - **Example**: Tech support bot (allow: tech questions, block: politics, finance)
+
+**Embedding Providers:**
+
+- **`SentenceTransformerProvider`** - Local embeddings (FREE, no API required)
+  - Model: all-MiniLM-L6-v2 (default, fast, 384 dims)
+  - Model: all-mpnet-base-v2 (higher quality, 768 dims)
+  - Model: paraphrase-multilingual (50+ languages)
+
+- **`OpenAIEmbeddingProvider`** - OpenAI embeddings
+  - Model: text-embedding-3-small (~$0.00002/request)
+  - Model: text-embedding-3-large (higher accuracy)
+
+- **`AnthropicEmbeddingProvider`** - Anthropic/Voyage embeddings
+  - Note: Placeholder for future Anthropic embedding API
+
+**When to use:**
+- High volume (1000+ requests/min)
+- Clear, well-defined topics
+- 85-95% accuracy acceptable
+- Cost is a constraint
+- Need <50ms response time
+- Can run locally without API (SentenceTransformer)
+
+**Benefits:**
+- Fast: 10-100x faster than LLM
+- Cost-effective: Free (local) or very cheap (OpenAI)
+- Semantic: Understands "umbrella" → weather
+- Cacheable: Pre-compute topics once
+- Offline-capable: Works without API (local mode)
+
+**Performance Comparison:**
+| Approach | Speed | Accuracy | Cost | Context Understanding |
+|----------|-------|----------|------|----------------------|
+| Keyword | <1ms | 60-70% | Free | None (removed) |
+| **Embedding** | 10-50ms | 85-95% | Very Low | Semantic similarity |
+| LLM | 1-2s | 95-99% | Low-Med | Full context + reasoning |
+
+---
+
 ### `llm_guardrails.py` - Flexible LLM-Based Validation
 
 Use Claude 4.5 Haiku to validate content with custom prompts. More flexible and context-aware than rule-based guardrails.
@@ -169,15 +231,19 @@ Utilities for configuring guardrails and creating LLM instances.
 
 **Functions:**
 - `get_anthropic_api_key()` - Load API key from environment
+- `get_openai_api_key()` - Load OpenAI API key from environment
 - `get_guardrail_model()` - Get configured model (default: claude-haiku-4-5)
+- `get_embedding_model()` - Get configured embedding model
 - `create_anthropic_llm()` - Create Claude instance for guardrails
 - `create_openai_llm()` - Create OpenAI instance (alternative)
+- `create_embedding_provider()` - Create embedding provider (local/openai/anthropic)
 - `print_config_info()` - Debug configuration
 
 **Setup:**
 1. Copy `.env.example` to `.env`
-2. Add your `ANTHROPIC_API_KEY`
-3. Use `create_anthropic_llm()` in your guardrails
+2. Add your `ANTHROPIC_API_KEY` (for LLM guardrails)
+3. Optionally add `OPENAI_API_KEY` (for OpenAI embeddings/LLM)
+4. Use helper functions to create instances
 
 ---
 
@@ -244,12 +310,36 @@ chain = GuardrailChain([
 workflow.add_node("validate", chain.check)
 ```
 
-### Pattern 3: Custom LLM Guardrail
+### Pattern 3: Embedding-Based Topic Validation
+```python
+from guardrails.embedding_guardrails import SemanticSimilarityGuardrail
+from guardrails.config import create_embedding_provider
+
+# Fast topic validation using local embeddings (no API required)
+topic_guardrail = SemanticSimilarityGuardrail(
+    topic_descriptions=[
+        "programming and software development",
+        "technology and computer science"
+    ],
+    embedding_provider=create_embedding_provider("local"),
+    similarity_threshold=0.70
+)
+workflow.add_node("topic_check", topic_guardrail.check)
+
+# Or use OpenAI embeddings for potentially better accuracy
+topic_guardrail = SemanticSimilarityGuardrail(
+    topic_descriptions=["weather forecasts and climate"],
+    embedding_provider=create_embedding_provider("openai"),
+    similarity_threshold=0.75
+)
+```
+
+### Pattern 4: Custom LLM Guardrail
 ```python
 from guardrails.llm_guardrails import LLMGuardrail
 from guardrails.config import create_anthropic_llm
 
-# Topic validation with semantic understanding
+# Topic validation with full LLM reasoning (slower but most accurate)
 topic_guardrail = LLMGuardrail(
     llm=create_anthropic_llm(),
     system_prompt="You validate if queries are about technology.",
@@ -262,7 +352,7 @@ Respond: {{"is_safe": bool, "reason": str, "confidence": float}}"""
 workflow.add_node("topic_check", topic_guardrail.check)
 ```
 
-### Pattern 4: Conditional Application
+### Pattern 5: Conditional Application
 ```python
 from guardrails.base import ConditionalGuardrail
 from guardrails.input_guardrails import RateLimitGuardrail
@@ -275,12 +365,13 @@ conditional = ConditionalGuardrail(
 
 ## Best Practices
 
-1. **Layer Your Guardrails**: Start with fast, cheap checks before expensive LLM calls
+1. **Layer Your Guardrails**: Start with fast, cheap checks before expensive operations
    ```python
    GuardrailChain([
-       InputLengthGuardrail(),        # Cheap
-       PromptInjectionGuardrail(),    # Fast pattern matching
-       ContentSafetyGuardrail(llm),   # Expensive, but accurate
+       InputLengthGuardrail(),              # <1ms, free
+       PromptInjectionGuardrail(),          # ~5ms, pattern matching
+       SemanticSimilarityGuardrail(...),   # ~30ms, embedding similarity
+       ContentSafetyGuardrail(llm),         # ~1s, LLM-based (most accurate)
    ])
    ```
 
@@ -313,23 +404,39 @@ conditional = ConditionalGuardrail(
 - Want deterministic results
 - Cost is a constraint
 
+**Use embedding-based guardrails when:**
+- High volume (1000+ requests/min)
+- Clear, well-defined topics
+- 85-95% accuracy acceptable
+- Need semantic understanding (better than keywords)
+- Cost-sensitive (free with local models)
+- Need <50ms response time
+- Can run offline/locally
+
 **Use LLM-based guardrails when:**
 - Rules are complex or nuanced
-- Need context awareness
+- Need full context awareness and reasoning
 - Validating tone, intent, or style
 - Domain expertise required
-- Topic validation (keyword matching is unreliable)
-- Content requires semantic understanding
+- 95-99% accuracy required
+- Edge cases and tricky phrasing common
+- Can tolerate 1-2s response time
 
-**Layer both for best results:**
+**Layer all three for optimal performance:**
 ```python
 GuardrailChain([
-    InputLengthGuardrail(),           # Fast length check
-    PromptInjectionGuardrail(),       # Fast pattern check
-    LLMGuardrail(llm, ...),          # Semantic topic validation
-    ContentSafetyGuardrail(llm),      # LLM for nuanced cases
+    InputLengthGuardrail(),              # <1ms: Fast length check
+    PromptInjectionGuardrail(),          # ~5ms: Pattern-based security
+    SemanticSimilarityGuardrail(...),   # ~30ms: Embedding topic check
+    ContentSafetyGuardrail(llm),         # ~1s: LLM for nuanced validation
 ])
 ```
+
+**Decision tree:**
+1. Start with simple checks (length, patterns)
+2. For topic validation: Use embeddings (fast, semantic)
+3. For complex validation: Use LLM (accurate, context-aware)
+4. For borderline embedding scores (0.6-0.8): Fall back to LLM
 
 ## Examples
 
@@ -340,6 +447,7 @@ See the `examples/` directory for complete working examples:
 - `06_production_example.py` - Production setup with LLM topic validation
 - `07_custom_llm_guardrails.py` - Custom LLM validation
 - `08_semantic_topic_validation.py` - Why LLM-based topic validation is better
+- `09_embedding_vs_llm_comparison.py` - **Embedding vs LLM performance comparison**
 
 ## Removed Guardrails
 
