@@ -58,6 +58,8 @@ workflow.add_conditional_edges("guardrail", input_guardrail, {
 
 **Use when:** Simple binary decisions (safe/unsafe, valid/invalid)
 
+**Note:** For topic validation, prefer LLM-based semantic matching over keyword matching. See `examples/08_semantic_topic_validation.py` for comparison.
+
 ### Pattern 2: State Transformation (Modify)
 
 ```python

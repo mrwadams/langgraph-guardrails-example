@@ -17,15 +17,32 @@ from guardrails.utils import (
 
 class TopicValidationGuardrail(BaseGuardrail):
     """
-    Validates that input is about allowed topics.
+    Validates that input is about allowed topics using keyword matching.
 
-    Example use case: Restrict a chatbot to only answer questions about specific domains.
+    IMPORTANT: This uses simple keyword/substring matching, NOT semantic understanding.
+    - fuzzy_match=True: Checks if topic keyword appears anywhere in text (substring)
+    - fuzzy_match=False: Checks for exact word boundary matches
 
-    Example:
+    Limitations:
+    - No semantic understanding (won't know "umbrella" relates to "weather")
+    - False positives (e.g., "whether" matches "weather")
+    - False negatives (e.g., misses "forecast" if not in allowed_topics)
+
+    For semantic topic validation, use LLMGuardrail instead:
+        from guardrails.llm_guardrails import LLMGuardrail
+
+        semantic_topic = LLMGuardrail(
+            llm=create_anthropic_llm(),
+            instruction_template="Is this about weather? {content}"
+        )
+
+    Example (keyword-based):
         guardrail = TopicValidationGuardrail(
             allowed_topics=["weather", "climate", "temperature"],
-            fuzzy_match=True
+            fuzzy_match=True  # Just substring matching
         )
+
+    See examples/08_semantic_topic_validation.py for comparison.
     """
 
     def __init__(
