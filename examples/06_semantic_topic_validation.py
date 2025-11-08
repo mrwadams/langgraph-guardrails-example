@@ -2,11 +2,7 @@
 Example 6: Semantic Topic Validation with LLM
 ==============================================
 
-This example demonstrates why LLM-based topic validation is superior to keyword matching,
-and why keyword-based topic validation was removed from this library.
-
-NOTE: TopicValidationGuardrail has been REMOVED from the library because it was unreliable.
-This example recreates it locally to demonstrate its limitations.
+This example compares keyword-based topic validation with LLM-based semantic validation.
 
 The keyword-based approach uses simple substring matching which leads to:
 - False positives (e.g., "whether" matching "weather")
@@ -27,12 +23,11 @@ from guardrails.llm_guardrails import LLMGuardrail
 from guardrails.config import create_anthropic_llm, get_anthropic_api_key
 
 
-# Recreate TopicValidationGuardrail locally for demonstration purposes
-# (This was removed from the library due to unreliability)
+# Simple keyword-based topic validation for demonstration purposes
 class TopicValidationGuardrail(BaseGuardrail):
     """
-    DEPRECATED: This guardrail was removed from the library.
-    Recreated here only to demonstrate why it's unreliable.
+    A simple keyword-based topic validator for comparison with LLM-based validation.
+    Uses substring matching to check if input contains allowed topics.
     """
     def __init__(self, allowed_topics: List[str], fuzzy_match: bool = True, name: str = None):
         super().__init__(name=name or "TopicValidation")

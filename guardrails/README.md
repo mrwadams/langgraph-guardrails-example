@@ -186,7 +186,7 @@ Three options for generating embeddings, each with different tradeoffs:
 **Performance Comparison:**
 | Approach | Speed | Accuracy | Cost | Context Understanding |
 |----------|-------|----------|------|----------------------|
-| Keyword | <1ms | 60-70% | Free | None (removed) |
+| Keyword | <1ms | 60-70% | Free | None |
 | **Embedding** | 10-50ms | 85-95% | Very Low | Semantic similarity |
 | LLM | 1-2s | 95-99% | Low-Med | Full context + reasoning |
 
@@ -290,7 +290,7 @@ graph = build_my_graph()
 visualize_graph(graph, "workflow.mermaid", format="mermaid")
 ```
 
-See `generate_diagrams.py` in the root directory for batch generation.
+You can also generate ASCII or PNG formats by changing the `format` parameter.
 
 ---
 
@@ -465,7 +465,7 @@ See the `examples/` directory for complete working examples:
 - `05_custom_llm_guardrails.py` - Custom LLM validation
 - `06_semantic_topic_validation.py` - Why LLM-based topic validation is better
 - `07_embedding_vs_llm_comparison.py` - Embedding vs LLM performance comparison
-- `08_lm_studio_embeddings.py` - Local embedding models for semantic guardrails
+- `08_embedding_similarity.py` - Embedding-based semantic similarity guardrails
 
 ## Contributing
 

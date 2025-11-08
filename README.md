@@ -39,6 +39,35 @@ Monitor and control the agent during execution:
 - Loop detection
 - Tool usage restrictions
 
+### Guardrails Flow Diagram
+
+```mermaid
+graph TD
+    User([User Input]) --> IG[Input Guardrails]
+    IG -->|Valid| Agent[Agent Processing]
+    IG -->|Invalid| Reject1[Reject/Modify Input]
+
+    Agent --> OG[Output Guardrails]
+    OG -->|Valid| Response([Response to User])
+    OG -->|Invalid| Reject2[Reject/Retry]
+
+    Agent -->|Exceeds Limits| LG[Loop Guardrails]
+    LG -->|Stop Execution| Error([Error: Limit Exceeded])
+
+    style IG fill:#e1f5ff,stroke:#0288d1
+    style OG fill:#fff3e0,stroke:#f57c00
+    style LG fill:#f3e5f5,stroke:#7b1fa2
+    style Agent fill:#e8f5e9,stroke:#388e3c
+    style Reject1 fill:#ffebee,stroke:#c62828
+    style Reject2 fill:#ffebee,stroke:#c62828
+    style Error fill:#ffebee,stroke:#c62828
+```
+
+**How it works:**
+- **Input Guardrails** (blue) validate incoming requests before processing
+- **Output Guardrails** (orange) validate agent responses before returning to users
+- **Loop Guardrails** (purple) continuously monitor the agent during execution
+
 ## Implementation Patterns
 
 ### Pattern 1: Conditional Routing (Simple)
@@ -160,9 +189,12 @@ graph TD;
 ```
 
 **Generate your own diagrams:**
-```bash
-python generate_diagrams.py
-# Creates Mermaid diagrams in docs/diagrams/
+```python
+from guardrails.visualization import visualize_graph
+
+# After building your graph
+graph = build_my_workflow()
+visualize_graph(graph, "my_workflow.mermaid", format="mermaid")
 ```
 
 View diagrams at [mermaid.live](https://mermaid.live) or with VS Code Mermaid extension.
@@ -175,7 +207,6 @@ langgraph-guardrails-example/
 ├── QUICKSTART.md                      # Quick start guide
 ├── requirements.txt                   # Dependencies
 ├── .env.example                       # Environment variables template
-├── generate_diagrams.py               # Generate workflow visualizations
 ├── guardrails/
 │   ├── __init__.py
 │   ├── base.py                       # Base guardrail classes
@@ -194,9 +225,7 @@ langgraph-guardrails-example/
 │   ├── 05_custom_llm_guardrails.py   # Custom LLM guardrails with flexible prompts
 │   ├── 06_semantic_topic_validation.py  # LLM vs keyword topic validation comparison
 │   ├── 07_embedding_vs_llm_comparison.py  # Embedding vs LLM performance
-│   └── 08_lm_studio_embeddings.py    # Local embedding models for semantic guardrails
-└── docs/
-    └── diagrams/                     # Generated Mermaid diagrams
+│   └── 08_embedding_similarity.py    # Embedding-based semantic similarity guardrails
 ```
 
 ## Quick Start
@@ -248,9 +277,6 @@ workflow.add_edge("agent", END)
 workflow.add_edge("reject", END)
 
 graph = workflow.compile()
-```
-
-For semantic topic validation, use the LLM-based approach (see examples/06_semantic_topic_validation.py).
 ```
 
 ### Custom LLM Guardrail Example
@@ -412,7 +438,7 @@ See the `examples/` directory for runnable code covering:
 5. **Custom LLM Guardrails** (`05_custom_llm_guardrails.py`) - Flexible prompt-based validation
 6. **Semantic Topic Validation** (`06_semantic_topic_validation.py`) - LLM vs keyword comparison
 7. **Embedding vs LLM** (`07_embedding_vs_llm_comparison.py`) - Performance comparison
-8. **Local Embedding Models** (`08_lm_studio_embeddings.py`) - Using local embeddings for semantic guardrails
+8. **Embedding Similarity** (`08_embedding_similarity.py`) - Semantic guardrails using embedding vectors
 
 ## Contributing
 

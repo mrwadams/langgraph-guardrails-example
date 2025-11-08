@@ -62,7 +62,7 @@ def _visualize_mermaid(graph, output_path: Optional[str] = None, title: Optional
 
 
 def _visualize_ascii(graph, output_path: Optional[str] = None) -> str:
-    """Generate ASCII diagram"""
+    """Generate ASCII diagram (requires grandalf: pip install grandalf)"""
     try:
         # Get ASCII representation
         ascii_str = graph.get_graph().draw_ascii()
@@ -76,6 +76,9 @@ def _visualize_ascii(graph, output_path: Optional[str] = None) -> str:
 
         return ascii_str
 
+    except ImportError as e:
+        msg = f"Error: ASCII generation requires grandalf. Install with: pip install grandalf\n{e}"
+        return msg
     except Exception as e:
         return f"Error generating ASCII diagram: {e}"
 
@@ -147,14 +150,14 @@ def print_graph_info(graph):
 
         # Print edges
         print(f"\nEdges:")
-        edge_count = 0
-        for start_node, edges in graph_data.edges.items():
-            for edge in edges:
-                edge_count += 1
-                end_node = edge.target if hasattr(edge, 'target') else edge
-                print(f"  {start_node} -> {end_node}")
+        edges_list = graph_data.edges if isinstance(graph_data.edges, list) else []
+        for edge in edges_list:
+            source = edge.source if hasattr(edge, 'source') else str(edge)
+            target = edge.target if hasattr(edge, 'target') else str(edge)
+            conditional = " (conditional)" if hasattr(edge, 'conditional') and edge.conditional else ""
+            print(f"  {source} -> {target}{conditional}")
 
-        print(f"\nTotal edges: {edge_count}")
+        print(f"\nTotal edges: {len(edges_list)}")
 
         # Print entry point
         if hasattr(graph_data, 'entry_point'):

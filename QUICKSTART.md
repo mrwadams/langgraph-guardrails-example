@@ -109,8 +109,8 @@ python examples/06_semantic_topic_validation.py
 # Embedding vs LLM comparison
 python examples/07_embedding_vs_llm_comparison.py
 
-# Local embedding models (using LM Studio as example)
-python examples/08_lm_studio_embeddings.py
+# Embedding-based semantic similarity guardrails
+python examples/08_embedding_similarity.py
 ```
 
 ## Available Guardrails
